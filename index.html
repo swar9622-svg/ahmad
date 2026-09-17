@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام متابعة الغياب المدرسي الذكي</title>
-    <!-- استيراد الخطوط والأيقونات -->
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- مكتبات قراءة ملفات الإكسل وتوليد الـ PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
@@ -18,7 +16,6 @@
             --grad-purple: linear-gradient(135deg, #5b21b6 0%, #7c3aed 100%);
             --grad-orange: linear-gradient(135deg, #c2410c 0%, #ea580c 100%);
             --bg-color: #f1f5f9;
-            --card-bg: #ffffff;
             --text-main: #0f172a;
         }
 
@@ -26,69 +23,68 @@
             font-family: 'IBM Plex Sans Arabic', sans-serif;
             background: var(--bg-color);
             margin: 0;
-            padding: 15px;
+            padding: 12px;
             color: var(--text-main);
             min-height: 100vh;
         }
 
         .app-container {
-            max-width: 650px;
+            max-width: 600px;
             margin: auto;
             background: #ffffff;
-            padding: 25px;
-            border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-            border-top: 8px solid #1e3c72;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            border-top: 6px solid #1e3c72;
         }
 
         .school-header-card {
             background: var(--grad-blue);
             color: white;
-            padding: 15px 20px;
-            border-radius: 16px;
+            padding: 12px 16px;
+            border-radius: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.2);
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(30, 60, 114, 0.15);
         }
 
         .school-title {
-            font-size: 17px;
+            font-size: 15px;
             font-weight: 700;
         }
 
         h2 {
             text-align: center;
-            font-size: 22px;
+            font-size: 19px;
             font-weight: 800;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: #1e3c72;
         }
 
-        /* شبكة الأزرار الرئيسية الملّونة */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 10px;
+            margin-bottom: 15px;
         }
 
         .dash-btn {
             border: none;
             color: white;
-            padding: 15px 12px;
-            border-radius: 14px;
-            font-size: 14px;
+            padding: 12px 10px;
+            border-radius: 12px;
+            font-size: 13px;
             font-weight: 700;
             font-family: 'IBM Plex Sans Arabic', sans-serif;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
+            gap: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
         }
 
         .dash-btn:active { transform: scale(0.96); }
@@ -101,62 +97,55 @@
             background: var(--grad-green);
             color: white;
             border: none;
-            padding: 16px;
+            padding: 14px;
             width: 100%;
-            font-size: 17px;
-            border-radius: 14px;
+            font-size: 15px;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: 800;
             font-family: 'IBM Plex Sans Arabic', sans-serif;
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
-            margin-bottom: 20px;
-            transition: transform 0.2s;
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.25);
+            margin-bottom: 15px;
         }
         .full-action-btn:active { transform: scale(0.98); }
 
-        /* تصميم النوافذ المنبثقة (Modals) */
+        /* النوافذ المنبثقة */
         .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(4px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 15px;
             box-sizing: border-box;
         }
 
         .modal-card {
             background: white;
             width: 100%;
-            max-width: 500px;
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-            animation: slideUp 0.3s ease-out;
+            max-width: 450px;
+            padding: 20px;
+            border-radius: 18px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
             box-sizing: border-box;
             max-height: 90vh;
             overflow-y: auto;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 18px;
+            margin-bottom: 15px;
             border-bottom: 2px solid #f1f5f9;
-            padding-bottom: 10px;
+            padding-bottom: 8px;
         }
 
         .modal-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 800;
             color: #1e3c72;
         }
@@ -165,32 +154,32 @@
             background: #fee2e2;
             color: #dc2626;
             border: none;
-            width: 32px; height: 32px;
+            width: 28px; height: 28px;
             border-radius: 50%;
             font-weight: bold;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .form-group label {
             display: block;
             font-weight: 700;
-            font-size: 13px;
+            font-size: 12px;
             color: #475569;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
 
         .form-control {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            border-radius: 10px;
             font-family: 'IBM Plex Sans Arabic', sans-serif;
-            font-size: 14px;
+            font-size: 13px;
             box-sizing: border-box;
             background: #f8fafc;
         }
@@ -201,52 +190,62 @@
             background: #fff;
         }
 
-        /* بطاقات الطلاب الفاخرة */
+        /* بطاقات الطلاب المصغرة والمنسقة */
         .student-card {
             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             border: 1px solid #e2e8f0;
-            border-right: 8px solid #dc2626;
-            padding: 18px;
-            margin-top: 15px;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            border-right: 6px solid #dc2626;
+            padding: 12px 15px;
+            margin-top: 10px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.03);
         }
 
         .student-name {
             font-weight: 800;
             color: #1e3c72;
-            font-size: 18px;
-            margin-bottom: 6px;
+            font-size: 15px;
+            margin-bottom: 4px;
+            /* خاصية قصر الاسم بحيث لا يتعدى سطرين بحد أقصى */
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
         }
 
         .student-info {
-            font-size: 13px;
+            font-size: 12px;
             color: #475569;
-            margin: 4px 0;
+            margin: 2px 0;
             font-weight: 600;
         }
 
+        /* زر إرسال واتساب بحجم مناسب ومتناسق */
         .wa-btn {
-            display: block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
             background: #25d366;
             color: white;
             text-decoration: none;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 15px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
             font-weight: 700;
-            margin-top: 12px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+            margin-top: 8px;
+            box-shadow: 0 3px 8px rgba(37, 211, 102, 0.25);
         }
 
         .error-box {
             background: #fee2e2;
             color: #991b1b;
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 20px;
-            font-size: 14px;
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 13px;
             text-align: center;
             font-weight: 700;
         }
@@ -256,18 +255,16 @@
 
 <div class="app-container">
     
-    <!-- بطاقة اسم المدرسة العلوي -->
     <div class="school-header-card">
         <div>
-            <div style="font-size: 11px; opacity: 0.8;">اسم المدرسة المعتمد:</div>
+            <div style="font-size: 10px; opacity: 0.8;">اسم المدرسة المعتمد:</div>
             <div id="displaySchoolName" class="school-title">متوسطة علي بن أبي طالب</div>
         </div>
-        <div style="font-size: 22px;">🏫</div>
+        <div style="font-size: 20px;">🏫</div>
     </div>
 
-    <h2>نظام متابعة الغياب وإرسال الواتساب</h2>
+    <h2>نظام متابعة الغياب الذكي</h2>
 
-    <!-- لوحة الأزرار الرئيسية الملّونة التفاعلية -->
     <div class="dashboard-grid">
         <button class="dash-btn btn-school" onclick="openModal('schoolModal')">
             <span>🏫 تعديل وحفظ اسم المدرسة</span>
@@ -283,7 +280,7 @@
         </button>
     </div>
 
-    <button class="full-action-btn" onclick="processFiles()">⚡ استخراج الطلاب الغائبين وتجهيز الرسائل</button>
+    <button class="full-action-btn" onclick="processFiles()">⚡ استخراج الغائبين وتجهيز الرسائل</button>
 
     <div id="results"></div>
 </div>
@@ -311,14 +308,14 @@
             <button class="close-btn" onclick="closeModal('filesModal')">✕</button>
         </div>
         <div class="form-group">
-            <label>📁 1. ملف إحصائية الغياب (GetStatistical...):</label>
+            <label>📁 1. ملف إحصائية الغياب:</label>
             <input type="file" id="file1" class="form-control" accept=".xlsx, .xls" onchange="updateFileLabel('file1', 's1')">
-            <div id="s1" style="font-size:12px; color:#10b981; margin-top:4px; font-weight:700;"></div>
+            <div id="s1" style="font-size:11px; color:#10b981; margin-top:3px; font-weight:700;"></div>
         </div>
         <div class="form-group">
-            <label>📁 2. ملف بيانات الإرشاد والجوالات (StudentGuidance...):</label>
+            <label>📁 2. ملف بيانات الإرشاد والجوالات:</label>
             <input type="file" id="file2" class="form-control" accept=".xlsx, .xls" onchange="updateFileLabel('file2', 's2')">
-            <div id="s2" style="font-size:12px; color:#10b981; margin-top:4px; font-weight:700;"></div>
+            <div id="s2" style="font-size:11px; color:#10b981; margin-top:3px; font-weight:700;"></div>
         </div>
         <button class="full-action-btn" style="margin:0;" onclick="closeModal('filesModal')">✔️ اعتماد الملفات</button>
     </div>
@@ -337,7 +334,7 @@
         </div>
         <div class="form-group">
             <label>✏️ نص رسالة الواتساب:</label>
-            <textarea id="msgTemplate" class="form-control" style="height:100px;">السلام عليكم ولي أمر الطالب (اسم الطالب)، نود إفادتكم بتغيب ابنكم عن المدرسة ليوم (التاريخ)، ونتمنى حضور واهتمام الجميع. شكراً لكم.</textarea>
+            <textarea id="msgTemplate" class="form-control" style="height:90px;">السلام عليكم ولي أمر الطالب (اسم الطالب)، نود إفادتكم بتغيب ابنكم عن المدرسة ليوم (التاريخ)، ونتمنى حضور واهتمام الجميع. شكراً لكم.</textarea>
         </div>
         <button class="full-action-btn" style="margin:0;" onclick="closeModal('msgModal')">💾 حفظ الإعدادات</button>
     </div>
@@ -407,7 +404,7 @@
             return;
         }
 
-        resultsDiv.innerHTML = '<p style="text-align:center; color:#475569; margin-top:20px; font-weight:700;">جاري تحليل البيانات...</p>';
+        resultsDiv.innerHTML = '<p style="text-align:center; color:#475569; margin-top:15px; font-weight:700;">جاري تحليل البيانات...</p>';
 
         try {
             const data1 = await readExcel(f1Input);
@@ -462,7 +459,7 @@
                 return;
             }
 
-            let html = `<div style="font-weight:800; color:#1e3c72; font-size:18px; margin-top:25px; border-bottom:2px solid #e2e8f0; padding-bottom:8px;">📊 قائمة الطلاب الغائبين (${globalAbsentList.length}):</div>`;
+            let html = `<div style="font-weight:800; color:#1e3c72; font-size:16px; margin-top:20px; border-bottom:2px solid #e2e8f0; padding-bottom:6px;">📊 قائمة الطلاب الغائبين (${globalAbsentList.length}):</div>`;
             
             globalAbsentList.forEach((student, index) => {
                 let msg = customTemplate
@@ -476,8 +473,8 @@
                     <div class="student-card">
                         <div class="student-name">${index + 1}. ${student.name}</div>
                         <div class="student-info">📁 الصف: ${student.grade} | الفصل: ${student.section}</div>
-                        <div class="student-info">📞 جوال ولي الأمر: ${student.phone || 'غير متوفر'}</div>
-                        ${student.phone ? `<a href="${waLink}" target="_blank" class="wa-btn">💬 إرسال رسالة واتساب فردية</a>` : '<span style="color:#dc2626; font-size:12px; font-weight:700;">⚠️ رقم الجوال غير متاح</span>'}
+                        <div class="student-info">📞 ولي الأمر: ${student.phone || 'غير متوفر'}</div>
+                        ${student.phone ? `<a href="${waLink}" target="_blank" class="wa-btn">💬 إرسال واتساب</a>` : '<span style="color:#dc2626; font-size:11px; font-weight:700;">⚠️ رقم الجوال غير متاح</span>'}
                     </div>
                 `;
             });
@@ -512,29 +509,29 @@
         printWindow.style.padding = '20px';
         printWindow.style.fontFamily = 'IBM Plex Sans Arabic, sans-serif';
         printWindow.innerHTML = `
-            <div style="text-align:center; border-bottom:3px solid #1e3c72; padding-bottom:15px; margin-bottom:20px;">
+            <div style="text-align:center; border-bottom:3px solid #1e3c72; padding-bottom:12px; margin-bottom:15px;">
                 <h2 style="margin:0; color:#1e3c72;">${schoolName}</h2>
-                <h3 style="margin:5px 0; color:#475569;">كشف الطلاب الغائبين بدون عذر</h3>
-                <p style="margin:0; font-size:14px; color:#64748b;">تاريخ اليوم: ${absenceDate}</p>
+                <h3 style="margin:4px 0; color:#475569;">كشف الطلاب الغائبين بدون عذر</h3>
+                <p style="margin:0; font-size:13px; color:#64748b;">تاريخ اليوم: ${absenceDate}</p>
             </div>
-            <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+            <table style="width:100%; border-collapse:collapse; margin-top:8px;">
                 <thead>
                     <tr style="background:#1e3c72; color:white;">
-                        <th style="padding:10px; border:1px solid #cbd5e1;">م</th>
-                        <th style="padding:10px; border:1px solid #cbd5e1;">اسم الطالب</th>
-                        <th style="padding:10px; border:1px solid #cbd5e1;">الصف</th>
-                        <th style="padding:10px; border:1px solid #cbd5e1;">الفصل</th>
-                        <th style="padding:10px; border:1px solid #cbd5e1;">رقم ولي الأمر</th>
+                        <th style="padding:8px; border:1px solid #cbd5e1;">م</th>
+                        <th style="padding:8px; border:1px solid #cbd5e1;">اسم الطالب</th>
+                        <th style="padding:8px; border:1px solid #cbd5e1;">الصف</th>
+                        <th style="padding:8px; border:1px solid #cbd5e1;">الفصل</th>
+                        <th style="padding:8px; border:1px solid #cbd5e1;">رقم ولي الأمر</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${filteredList.map((s, i) => `
                         <tr>
-                            <td style="padding:8px; border:1px solid #cbd5e1; text-align:center;">${i+1}</td>
-                            <td style="padding:8px; border:1px solid #cbd5e1; font-weight:bold;">${s.name}</td>
-                            <td style="padding:8px; border:1px solid #cbd5e1; text-align:center;">${s.grade}</td>
-                            <td style="padding:8px; border:1px solid #cbd5e1; text-align:center;">${s.section}</td>
-                            <td style="padding:8px; border:1px solid #cbd5e1; text-align:center;">${s.phone}</td>
+                            <td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">${i+1}</td>
+                            <td style="padding:6px; border:1px solid #cbd5e1; font-weight:bold;">${s.name}</td>
+                            <td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">${s.grade}</td>
+                            <td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">${s.section}</td>
+                            <td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">${s.phone}</td>
                         </tr>
                     `).join('')}
                 </tbody>
