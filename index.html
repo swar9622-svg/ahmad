@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إرسال رسائل الغياب للواتساب</title>
-    <!-- مكتبة قراءة ملفات الإكسل SheetJS -->
+    <title>نظام متابعة الغياب للواتساب</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: Tahoma, sans-serif; background: #f4f7f6; padding: 15px; margin: 0; }
@@ -19,21 +18,21 @@
         .student-name { font-weight: bold; color: #333; font-size: 15px; }
         .student-info { font-size: 13px; color: #666; margin: 5px 0; }
         .wa-btn { display: inline-block; background: #25d366; color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; margin-top: 5px; text-align: center; width: 100%; box-sizing: border-box; }
-        .wa-btn:hover { background: #128c7e; }
+        .error-box { background: #ffebee; color: #c62828; padding: 10px; border-radius: 5px; margin-top: 15px; font-size: 13px; border: 1px solid #ef9a9a; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2> نظام متابعة الغياب للواتساب</h2>
+    <h2>نظام متابعة الغياب للواتساب</h2>
     
     <div class="upload-section">
-        <label>1. ملف إحصائية الغياب (GetStatisticalViolationeStudnt):</label>
+        <label>1. ملف إحصائية الغياب (GetStatistical...):</label>
         <input type="file" id="file1" accept=".xlsx, .xls">
     </div>
 
     <div class="upload-section">
-        <label>2. ملف بيانات الإرشاد وأرقام الجوالات:</label>
+        <label>2. ملف بيانات الإرشاد والجوالات (StudentGuidance...):</label>
         <input type="file" id="file2" accept=".xlsx, .xls">
     </div>
 
@@ -53,30 +52,48 @@ async function processFiles() {
         return;
     }
 
+    resultsDiv.innerHTML = '<p style="text-align:center; color:#666;">جاري قراءة البيانات ومعالجتها...</p>';
+
     try {
         const data1 = await readExcel(f1Input);
         const data2 = await readExcel(f2Input);
 
-        // تحليل ملف الغياب (الملف الأول) - بافتراض الصف 8 هو العنوان بناءً على هيكلة ملفك
+        // قراءة الملف الأول (إحصائية الغياب) بافتراض الهيكلة
         const sheet1 = data1.Sheets[data1.SheetNames[0]];
         const json1 = XLSX.utils.sheet_to_json(sheet1, { range: 8 });
 
-        // تحليل ملف الإرشاد (الملف الثاني) - بافتراض الصف 3 هو العنوان
-        const sheet2 = data2.Sheets[data2.SheetNames['Sheet2'] || data2.SheetNames[0]];
+        // قراءة الملف الثاني (بيانات الإرشاد - وغالباً في Sheet2)
+        const targetSheetName2 = data2.SheetNames.includes('Sheet2') ? 'Sheet2' : data2.SheetNames[0];
+        const sheet2 = data2.Sheets[targetSheetName2];
         const json2 = XLSX.utils.sheet_to_json(sheet2, { range: 3 });
 
-        // تصفية الطلاب الغائبين (غياب بدون عذر > 0)
         let absentList = [];
         json1.forEach(row => {
-            let name = row['الاســـم'] ? row['الاســـم'].trim() : '';
-            let absenceVal = parseInt(row['غياب بدون عذر'] || 0);
+            // البحث عن اسم الطالب وأعمدة الغياب
+            let nameKeys = Object.keys(row).filter(k => k.includes('الاســـم') || k.includes('الاسم'));
+            let absenceKeys = Object.keys(row).filter(k => k.includes('غياب بدون عذر'));
+
+            let name = nameKeys.length > 0 && row[nameKeys[0]] ? String(row[nameKeys[0]]).trim() : '';
+            let absenceVal = absenceKeys.length > 0 ? parseInt(row[absenceKeys[0]] || 0) : 0;
             
             if (name && absenceVal > 0) {
                 // البحث عن رقم الجوال في الملف الثاني
-                let matchedStudent = json2.find(s => s['اسم الطالب'] && s['اسم الطالب'].trim() === name);
-                let phone = matchedStudent && matchedStudent['الجوال'] ? String(matchedStudent['الجوال']).trim() : '';
+                let matchedStudent = json2.find(s => {
+                    let sNameKeys = Object.keys(s).filter(k => k.includes('اسم الطالب'));
+                    let sName = sNameKeys.length > 0 && s[sNameKeys[0]] ? String(s[sNameKeys[0]]).trim() : '';
+                    return sName === name;
+                });
+
+                let phone = '';
+                if (matchedStudent) {
+                    let phoneKeys = Object.keys(matchedStudent).filter(k => k.includes('الجوال') || k.includes('الهاتف'));
+                    if (phoneKeys.length > 0) {
+                        phone = String(matchedStudent[phoneKeys[0]]).trim();
+                    }
+                }
                 
-                // تنظيف رقم الهاتف وإضافة رمز الدولة إذا لزم
+                // تنظيف الرقم
+                phone = phone.replace(/[^0-9]/g, '');
                 if (phone.startsWith('05')) {
                     phone = '966' + phone.substring(1);
                 }
@@ -91,7 +108,7 @@ async function processFiles() {
         });
 
         if (absentList.length === 0) {
-            resultsDiv.innerHTML = '<p style="text-align:center; color:green;">لا يوجد طلاب غائبين بدون عذر اليوم أو أن أسماء الأعمدة بحاجة لمطابقة دقيقة.</p>';
+            resultsDiv.innerHTML = '<div class="error-box">لم يتم العثور على طلاب غائبين (غياب بدون عذر > 0) أو حدث عدم تطابق في أسماء الأعمدة. تأكد أن الملفات صحيحة.</div>';
             return;
         }
 
@@ -115,7 +132,7 @@ async function processFiles() {
 
     } catch (error) {
         console.error(error);
-        حدث خطأ أثناء قراءة الملفات. تأكد من تطابق الصيغ.
+        resultsDiv.innerHTML = `<div class="error-box">حدث خطأ تقني أثناء قراءة الملفات:<br>${error.message}</div>`;
     }
 }
 
@@ -123,11 +140,15 @@ function readExcel(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            resolve(workbook);
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                resolve(workbook);
+            } catch (err) {
+                reject(err);
+            }
         };
-        reader.onerror = reject;
+        reader.onerror = (err) => reject(err);
         reader.readAsArrayBuffer(file);
     });
 }
