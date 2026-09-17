@@ -517,6 +517,42 @@
         .absence-badge { left:12px; right:auto; top:50%; transform:translateY(-50%); }
         .student-name { text-align:right !important; padding-right:0 !important; padding-left:50px !important; direction:rtl; }
         .student-card { padding-left:58px; }
+
+        /* ===== ضبط خفيف للخطوط والنوافذ والرسائل على دفعات ===== */
+        .school-title { font-size: clamp(19px, 4vw, 24px) !important; }
+        .extract-btn { font-size: 14px !important; min-height: 48px !important; padding: 10px 12px !important; }
+        .modal-card { max-width: 470px; padding: 18px; }
+        #filesModal .modal-card { max-height: 84vh; overflow-y:auto; padding:15px; }
+        #filesModal .form-group { padding:10px; margin-bottom:9px; }
+        #filesModal .form-control { min-height:42px; padding:8px 10px; font-size:14px !important; }
+        #filesModal input[type="file"].form-control { min-height:48px; }
+        input[type="date"].form-control, input[type="date"] { width:100%; max-width:205px; min-width:0; }
+        .report-date-range input[type="date"] { max-width:100%; width:100%; }
+        .history-table { table-layout:fixed; }
+        .history-table th, .history-table td { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .history-table th:nth-child(1), .history-table td:nth-child(1) { width:42px; }
+        .history-table th:nth-last-child(1), .history-table td:nth-last-child(1) { width:58px; }
+        .history-table .delete-record-btn { padding:5px 8px; min-width:44px; font-size:12px; }
+        .batch-actions { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin:12px 0; }
+        .batch-open-btn { border:0; border-radius:10px; padding:10px 15px; background:#7185aa; color:#fff; font:900 14px 'IBM Plex Sans Arabic'; cursor:pointer; }
+        .batch-modal-card { max-width:580px; }
+        .batch-list { max-height:48vh; overflow-y:auto; border:1px solid #d8e3ef; border-radius:10px; }
+        .batch-row { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 10px; border-bottom:1px solid #e5ecf3; font-size:13px; font-weight:800; }
+        .batch-row:last-child { border-bottom:0; }
+        .batch-wa-link { flex:0 0 auto; border-radius:8px; padding:6px 9px; background:#c9ead9; color:#176b4e; text-decoration:none; font:900 12px 'IBM Plex Sans Arabic'; }
+        .batch-nav { display:flex; gap:8px; justify-content:center; margin-top:12px; }
+        .batch-next-btn, .batch-reset-btn { border:0; border-radius:9px; padding:9px 12px; font:900 13px 'IBM Plex Sans Arabic'; cursor:pointer; }
+        .batch-next-btn { background:#89a4c8; color:#fff; }
+        .batch-reset-btn { background:#edf1f6; color:#49627e; }
+        @media(max-width:520px){ .school-title { font-size:19px !important; } .extract-btn { font-size:12px !important; } #filesModal .modal-card { max-height:88vh; } .batch-row { font-size:12px; } }
+
+        html, body { max-width:100%; overflow-x:hidden !important; }
+        .app-container, .modal-overlay, .modal-card, .main-frame, #results { max-width:100%; overflow-x:hidden !important; }
+        .modal-card { overflow-y:auto; }
+        .history-scroll, .batch-list { overflow-x:hidden !important; overflow-y:auto; }
+        .v7-panel table, .history-table, .hierarchy-table, .nested-table { min-width:0 !important; width:100%; table-layout:fixed; }
+        .v7-panel { overflow-x:hidden !important; }
+        .v7-panel td, .v7-panel th, .history-table td, .history-table th, .hierarchy-table td, .hierarchy-table th { overflow-wrap:anywhere; word-break:break-word; }
 </style>
 </head>
 <body>
@@ -672,6 +708,8 @@
 <div id="todayAbsenceReportModal" class="modal-overlay"><div class="modal-card history-modal-card"><div class="modal-header"><div class="modal-title">غياب اليوم حسب الصف والفصل</div><button class="close-btn" onclick="closeModal('todayAbsenceReportModal')">✕</button></div><div id="todayAbsenceReportContent"></div></div></div>
 <div id="totalAbsenceReportModal" class="modal-overlay"><div class="modal-card history-modal-card"><div class="modal-header"><div class="modal-title">إجمالي الغياب حسب المدة</div><button class="close-btn" onclick="closeModal('totalAbsenceReportModal')">✕</button></div><div class="report-date-range"><div><label>من تاريخ</label><input id="totalFromDate" type="date" class="form-control" onchange="renderTotalAbsenceReport()"></div><div><label>إلى تاريخ</label><input id="totalToDate" type="date" class="form-control" onchange="renderTotalAbsenceReport()"></div></div><div id="totalAbsenceReportContent"></div></div></div>
 
+<div id="batchMessagesModal" class="modal-overlay"><div class="modal-card history-modal-card batch-modal-card"><div class="modal-header"><div class="modal-title">تجهيز رسائل خاصة — دفعة 10</div><button class="close-btn" onclick="closeModal('batchMessagesModal')">✕</button></div><div id="batchMessagesSummary" class="settings-note"></div><div id="batchMessagesContent"></div><div class="batch-nav"><button class="batch-next-btn" onclick="prepareNextBatch()">تجهيز الـ10 التالية</button><button class="batch-reset-btn" onclick="resetBatch()">إعادة من البداية</button></div></div></div>
+
 <script>
     // نظام الصوت البرمجي النقي (Web Audio API) كما طلبت تماماً
     let audioCtx = null;
@@ -724,6 +762,7 @@
 
     function openModal(modalId) { 
         playSound();
+        if (modalId === 'filesModal') initFileAbsenceDate();
         document.getElementById(modalId).style.display = 'flex'; 
     }
     
@@ -881,7 +920,7 @@
                     // محاولة إضافية عند اختلاف تنسيق الرقم أو استخدام أرقام عربية، مع إبقاء المطابقة الأصلية أولاً
                     if (!foundPhone) {
                         const toLatin = v => String(v ?? '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-                        const normalizeName = v => toLatin(v).replace(/[ًٌٍَُِّْـ]/g, '').replace(/[إأآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '').toLowerCase();
+                        const normalizeName = v => toLatin(v).replace(/[ًٌٍَُِّْـ]/g, '').replace(/[إأآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '').toLowerCase();
                         const targetName = normalizeName(name);
                         for (let s of cachedJson2) {
                             const values = Object.values(s).map(v => String(v ?? '').trim()).filter(Boolean);
@@ -996,7 +1035,7 @@
         const records = allSavedDailyRecords();
         const dates = Object.keys(records).sort().reverse();
         const content = document.getElementById('savedStatsContent');
-        content.innerHTML = `<div class="history-scroll"><table class="history-table"><thead><tr><th>م</th><th>التاريخ</th><th>عدد الغائبين</th><th>حذف</th></tr></thead><tbody>${dates.length ? dates.map((date,i)=>`<tr><td>${i+1}</td><td>${date}</td><td>${(records[date].list||[]).length}</td><td><button class="delete-record-btn" onclick="deleteSavedStat('${date}')">حذف السجل</button></td></tr>`).join('') : '<tr><td colspan="4">لا توجد إحصائيات محفوظة</td></tr>'}</tbody></table></div>`;
+        content.innerHTML = `<div class="history-scroll"><table class="history-table"><thead><tr><th>م</th><th>التاريخ</th><th>عدد الغائبين</th><th>حذف</th></tr></thead><tbody>${dates.length ? dates.map((date,i)=>`<tr><td>${i+1}</td><td>${date}</td><td>${(records[date].list||[]).length}</td><td><button class="delete-record-btn" onclick="deleteSavedStat('${date}')">حذف</button></td></tr>`).join('') : '<tr><td colspan="4">لا توجد إحصائيات محفوظة</td></tr>'}</tbody></table></div>`;
         openModal('savedStatsModal');
     }
 
@@ -1029,7 +1068,7 @@
     }
 
     function renderAbsentList(container, customTemplate, absenceDate) {
-        let html = `<div style="font-weight:800;color:#1e3c72;font-size:16px;margin-top:20px;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">📊 قائمة الطلاب الغائبين (${globalAbsentList.length}):</div>`;
+        let html = `<div style="font-weight:800;color:#1e3c72;font-size:16px;margin-top:20px;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">📊 قائمة الطلاب الغائبين (${globalAbsentList.length}):</div><div class="batch-actions"><button class="batch-open-btn" onclick="openBatchMessages()">📨 تجهيز 10 رسائل خاصة</button></div>`;
         globalAbsentList.forEach((student, index) => {
             let msg = customTemplate.replace(/\(اسم الطالب\)/g, student.name).replace(/\(التاريخ\)/g, absenceDate);
             let waLink = student.phone ? `https://wa.me/${student.phone}?text=${encodeURIComponent(msg)}` : '';
@@ -1043,6 +1082,21 @@
         });
         container.innerHTML=html;
         updateV5Stats();
+    }
+
+    let batchStartIndex = 0;
+    function openBatchMessages() { batchStartIndex = 0; renderBatchMessages(); openModal('batchMessagesModal'); }
+    function resetBatch() { batchStartIndex = 0; renderBatchMessages(); }
+    function prepareNextBatch() {
+        if (batchStartIndex + 10 < globalAbsentList.length) { batchStartIndex += 10; renderBatchMessages(); } else { toastV7('تم تجهيز آخر دفعة من القائمة'); }
+    }
+    function renderBatchMessages() {
+        const list = globalAbsentList || [];
+        const batch = list.slice(batchStartIndex, batchStartIndex + 10);
+        const date = document.getElementById('absenceDate')?.value || '';
+        const template = document.getElementById('msgTemplate')?.value || 'السلام عليكم ولي أمر الطالب (اسم الطالب)، نود إفادتكم بتغيب ابنكم عن المدرسة ليوم (التاريخ).';
+        document.getElementById('batchMessagesSummary').textContent = `الرسائل ${list.length ? batchStartIndex+1 : 0} إلى ${Math.min(batchStartIndex+10,list.length)} من أصل ${list.length}. كل رابط يفتح محادثة خاصة منفصلة.`;
+        document.getElementById('batchMessagesContent').innerHTML = `<div class="batch-list">${batch.length ? batch.map((student,i)=>{ const msg=template.replace(/\(اسم الطالب\)/g,student.name).replace(/\(التاريخ\)/g,date); const link=student.phone ? `https://wa.me/${student.phone}?text=${encodeURIComponent(msg)}` : ''; return `<div class="batch-row"><span>${batchStartIndex+i+1}. ${student.name} — ${student.phone ? 'يوجد رقم' : 'لا يوجد رقم'}</span>${link ? `<a class="batch-wa-link" target="_blank" href="${link}" onclick="markAsSent(${batchStartIndex+i})">فتح واتساب</a>` : '<span class="settings-note">غير متوفر</span>'}</div>`; }).join('') : '<div class="settings-note" style="padding:14px">لا توجد بطاقات طلاب بعد استخراج الملف.</div>'}</div>`;
     }
 
     function markAsSent(index) {
