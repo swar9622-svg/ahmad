@@ -329,17 +329,21 @@
             <div class="modal-title">إرفاق الملفات</div>
             <button class="close-btn" onclick="closeModal('filesModal')">✕</button>
         </div>
-        <!-- الترتيب الجديد: إحصائية الغياب في الأعلى، وملف الإرشاد بالأسفل -->
+        
+        <!-- الخانة الأولى (الأعلى): ملف بيانات الإرشاد والجوالات (الذي يُحفظ تلقائياً بالجهاز لمرة واحدة) -->
         <div class="form-group">
-            <label>📁 1. ملف إحصائية الغياب (يتم إرفاقه يومياً):</label>
-            <input type="file" id="file1" class="form-control" accept=".xlsx, .xls" onchange="updateFileLabel('file1', 's1')">
-            <div id="s1" style="font-size:11px; color:#10b981; margin-top:3px; font-weight:700;"></div>
-        </div>
-        <div class="form-group">
-            <label>📁 2. ملف بيانات الإرشاد والجوالات (يُحفظ تلقائياً بالجهاز لمرة واحدة):</label>
+            <label>📁 1. ملف بيانات الإرشاد والجوالات (يُحفظ تلقائياً بالجهاز لمرة واحدة):</label>
             <input type="file" id="file2" class="form-control" accept=".xlsx, .xls" onchange="saveGuidanceFile(this)">
             <div id="guidanceStatus" style="margin-top: 5px;"></div>
         </div>
+
+        <!-- الخانة الثانية (الأسفل): ملف إحصائية الغياب (يتم إرفاقه يومياً) -->
+        <div class="form-group">
+            <label>📁 2. ملف إحصائية الغياب (يتم إرفاقه يومياً):</label>
+            <input type="file" id="file1" class="form-control" accept=".xlsx, .xls" onchange="updateFileLabel('file1', 's1')">
+            <div id="s1" style="font-size:11px; color:#10b981; margin-top:3px; font-weight:700;"></div>
+        </div>
+
         <button class="full-action-btn" style="margin:0;" onclick="closeModal('filesModal')">✔️ إغلاق واعتماد الملفات</button>
     </div>
 </div>
@@ -356,7 +360,7 @@
         </div>
         <div class="form-group">
             <label>✏️ نص رسالة الواتساب:</label>
-            <textarea id="msgTemplate" class="form-control" style="height:90px;">السلام عليكم ولي أمر الطالب (اسم الطالب)، نود إفادتكم بتغيب ابنكم عن المدرسة ليوم (التاريخ)، ونتمنى حضور واهتمام الجميع. شكراً لكم.</textarea>
+            <textarea id="msgTemplate" class="form-control" style="height:90px;">السلام عليكم ولي أمر الطالب (اسم الطالب), نود إفادتكم بتغيب ابنكم عن المدرسة ليوم (التاريخ), ونتمنى حضور واهتمام الجميع. شكراً لكم.</textarea>
         </div>
         <button class="full-action-btn" style="margin:0;" onclick="closeModal('msgModal')">💾 حفظ الإعدادات</button>
     </div>
@@ -398,13 +402,12 @@
         } catch (e) {}
     }
 
-    // ربط أصوات الأزرار والقوائم المنسدلة تلقائياً بكل عناصر التفاعل في الصفحة
     document.addEventListener('DOMContentLoaded', () => {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('absenceDate').value = today;
         checkStoredGuidanceData();
 
-        // تفعيل الأصوات لجميع الأزرار، حقول الإدخال، والقوائم المنسدلة (Select)
+        // تفعيل الأصوات لجميع الأزرار والقوائم وعناصر الاختيار
         const interactiveElements = document.querySelectorAll('button, select, input[type="file"], input[type="date"], .dash-btn');
         interactiveElements.forEach(el => {
             el.addEventListener('click', playSound);
@@ -490,14 +493,14 @@
         const customTemplate = document.getElementById('msgTemplate').value;
         const resultsDiv = document.getElementById('results');
 
-        if (!f1Input) {
-            alert('الرجاء إرفاق ملف إحصائية الغياب الخاص اليوم!');
+        if (!cachedJson2) {
+            alert('الرجاء إرفاق ملف بيانات الإرشاد والجوالات في الخانة العليا (لأول مرة فقط)!');
             openModal('filesModal');
             return;
         }
 
-        if (!cachedJson2) {
-            alert('الرجاء إرفاق ملف بيانات الإرشاد والجوالات (لأول مرة فقط) من زر الإعدادات!');
+        if (!f1Input) {
+            alert('الرجاء إرفاق ملف إحصائية الغياب اليومي في الخانة السفلى!');
             openModal('filesModal');
             return;
         }
