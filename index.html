@@ -3,155 +3,570 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام متابعة الغياب للواتساب</title>
+    <title>نظام متابعة الغياب المدرسي الذكي</title>
+    <!-- استيراد الخطوط والأيقونات -->
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- مكتبات قراءة ملفات الإكسل وتوليد الـ PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
     <style>
-        body { font-family: Tahoma, sans-serif; background: #f4f7f6; padding: 15px; margin: 0; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #075e54; font-size: 20px; }
-        .upload-section { margin-bottom: 15px; background: #f9f9f9; padding: 10px; border-radius: 6px; border: 1px dashed #ccc; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
-        input[type="file"] { width: 100%; font-size: 13px; }
-        button { background: #25d366; color: white; border: none; padding: 10px 15px; width: 100%; font-size: 16px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        button:hover { background: #1ebe5d; }
-        .student-card { background: #fff; border: 1px solid #e0e0e0; border-right: 5px solid #25d366; padding: 12px; margin-top: 10px; border-radius: 5px; }
-        .student-name { font-weight: bold; color: #333; font-size: 15px; }
-        .student-info { font-size: 13px; color: #666; margin: 5px 0; }
-        .wa-btn { display: inline-block; background: #25d366; color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; margin-top: 5px; text-align: center; width: 100%; box-sizing: border-box; }
-        .error-box { background: #ffebee; color: #c62828; padding: 10px; border-radius: 5px; margin-top: 15px; font-size: 13px; border: 1px solid #ef9a9a; }
+        :root {
+            --grad-blue: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --grad-red: linear-gradient(135deg, #c53030 0%, #e53e3e 100%);
+            --grad-green: linear-gradient(135deg, #047857 0%, #10b981 100%);
+            --grad-purple: linear-gradient(135deg, #5b21b6 0%, #7c3aed 100%);
+            --grad-orange: linear-gradient(135deg, #c2410c 0%, #ea580c 100%);
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background: var(--bg-color);
+            margin: 0;
+            padding: 15px;
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        .app-container {
+            max-width: 650px;
+            margin: auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border-top: 8px solid #1e3c72;
+        }
+
+        .school-header-card {
+            background: var(--grad-blue);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.2);
+        }
+
+        .school-title {
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #1e3c72;
+        }
+
+        /* شبكة الأزرار الرئيسية الملّونة */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .dash-btn {
+            border: none;
+            color: white;
+            padding: 15px 12px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .dash-btn:active { transform: scale(0.96); }
+        .btn-school { background: var(--grad-blue); grid-column: span 2; }
+        .btn-files { background: var(--grad-purple); }
+        .btn-msg { background: var(--grad-orange); }
+        .btn-pdf { background: var(--grad-red); grid-column: span 2; }
+
+        .full-action-btn {
+            background: var(--grad-green);
+            color: white;
+            border: none;
+            padding: 16px;
+            width: 100%;
+            font-size: 17px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 800;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+        .full-action-btn:active { transform: scale(0.98); }
+
+        /* تصميم النوافذ المنبثقة (Modals) */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .modal-card {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            animation: slideUp 0.3s ease-out;
+            box-sizing: border-box;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #1e3c72;
+        }
+
+        .close-btn {
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            font-size: 14px;
+            box-sizing: border-box;
+            background: #f8fafc;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #2563eb;
+            background: #fff;
+        }
+
+        /* بطاقات الطلاب الفاخرة */
+        .student-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+            border-right: 8px solid #dc2626;
+            padding: 18px;
+            margin-top: 15px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+        }
+
+        .student-name {
+            font-weight: 800;
+            color: #1e3c72;
+            font-size: 18px;
+            margin-bottom: 6px;
+        }
+
+        .student-info {
+            font-size: 13px;
+            color: #475569;
+            margin: 4px 0;
+            font-weight: 600;
+        }
+
+        .wa-btn {
+            display: block;
+            background: #25d366;
+            color: white;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            margin-top: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+        }
+
+        .error-box {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+            font-size: 14px;
+            text-align: center;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>نظام متابعة الغياب للواتساب</h2>
+<div class="app-container">
     
-    <div class="upload-section">
-        <label>1. ملف إحصائية الغياب (GetStatistical...):</label>
-        <input type="file" id="file1" accept=".xlsx, .xls">
+    <!-- بطاقة اسم المدرسة العلوي -->
+    <div class="school-header-card">
+        <div>
+            <div style="font-size: 11px; opacity: 0.8;">اسم المدرسة المعتمد:</div>
+            <div id="displaySchoolName" class="school-title">متوسطة علي بن أبي طالب</div>
+        </div>
+        <div style="font-size: 22px;">🏫</div>
     </div>
 
-    <div class="upload-section">
-        <label>2. ملف بيانات الإرشاد والجوالات (StudentGuidance...):</label>
-        <input type="file" id="file2" accept=".xlsx, .xls">
+    <h2>نظام متابعة الغياب وإرسال الواتساب</h2>
+
+    <!-- لوحة الأزرار الرئيسية الملّونة التفاعلية -->
+    <div class="dashboard-grid">
+        <button class="dash-btn btn-school" onclick="openModal('schoolModal')">
+            <span>🏫 تعديل وحفظ اسم المدرسة</span>
+        </button>
+        <button class="dash-btn btn-files" onclick="openModal('filesModal')">
+            <span>📁 إرفاق ملفات الإكسل</span>
+        </button>
+        <button class="dash-btn btn-msg" onclick="openModal('msgModal')">
+            <span>✏️ تخصيص نص الرسالة</span>
+        </button>
+        <button class="dash-btn btn-pdf" onclick="openModal('pdfModal')">
+            <span>🖨️ طباعة كشف الغياب PDF</span>
+        </button>
     </div>
 
-    <button onclick="processFiles()">استخراج الغائبين وتجهيز الرسائل</button>
+    <button class="full-action-btn" onclick="processFiles()">⚡ استخراج الطلاب الغائبين وتجهيز الرسائل</button>
 
-    <div id="results" style="margin-top: 20px;"></div>
+    <div id="results"></div>
+</div>
+
+<!-- 1. نافذة اسم المدرسة -->
+<div id="schoolModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title">إعدادات المدرسة</div>
+            <button class="close-btn" onclick="closeModal('schoolModal')">✕</button>
+        </div>
+        <div class="form-group">
+            <label>أدخل اسم المدرسة:</label>
+            <input type="text" id="inputSchoolName" class="form-control" value="متوسطة علي بن أبي طالب">
+        </div>
+        <button class="full-action-btn" style="margin:0;" onclick="saveSchoolName()">💾 حفظ اسم المدرسة</button>
+    </div>
+</div>
+
+<!-- 2. نافذة إرفاق الملفات -->
+<div id="filesModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title">إرفاق ملفات البيانات</div>
+            <button class="close-btn" onclick="closeModal('filesModal')">✕</button>
+        </div>
+        <div class="form-group">
+            <label>📁 1. ملف إحصائية الغياب (GetStatistical...):</label>
+            <input type="file" id="file1" class="form-control" accept=".xlsx, .xls" onchange="updateFileLabel('file1', 's1')">
+            <div id="s1" style="font-size:12px; color:#10b981; margin-top:4px; font-weight:700;"></div>
+        </div>
+        <div class="form-group">
+            <label>📁 2. ملف بيانات الإرشاد والجوالات (StudentGuidance...):</label>
+            <input type="file" id="file2" class="form-control" accept=".xlsx, .xls" onchange="updateFileLabel('file2', 's2')">
+            <div id="s2" style="font-size:12px; color:#10b981; margin-top:4px; font-weight:700;"></div>
+        </div>
+        <button class="full-action-btn" style="margin:0;" onclick="closeModal('filesModal')">✔️ اعتماد الملفات</button>
+    </div>
+</div>
+
+<!-- 3. نافذة تخصيص النص والتاريخ -->
+<div id="msgModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title">تخصيص الرسالة والتاريخ</div>
+            <button class="close-btn" onclick="closeModal('msgModal')">✕</button>
+        </div>
+        <div class="form-group">
+            <label>📅 تاريخ الغياب (تلقائي أو يدوي):</label>
+            <input type="date" id="absenceDate" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>✏️ نص رسالة الواتساب:</label>
+            <textarea id="msgTemplate" class="form-control" style="height:100px;">السلام عليكم ولي أمر الطالب (اسم الطالب)، نود إفادتكم بتغيب ابنكم عن المدرسة ليوم (التاريخ)، ونتمنى حضور واهتمام الجميع. شكراً لكم.</textarea>
+        </div>
+        <button class="full-action-btn" style="margin:0;" onclick="closeModal('msgModal')">💾 حفظ الإعدادات</button>
+    </div>
+</div>
+
+<!-- 4. نافذة طباعة كشف الغياب PDF -->
+<div id="pdfModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title">طباعة وتصدير كشف الغياب PDF</div>
+            <button class="close-btn" onclick="closeModal('pdfModal')">✕</button>
+        </div>
+        <div class="form-group">
+            <label>اختر نطاق الطباعة:</label>
+            <select id="pdfScope" class="form-control">
+                <option value="all">جميع المراحل والفصول الغائبة</option>
+                <option value="first_int">الأول المتوسط فقط</option>
+                <option value="sec_int">الثاني المتوسط فقط</option>
+            </select>
+        </div>
+        <button class="full-action-btn" style="background:var(--grad-red); margin:0;" onclick="generatePDFReport()">🖨️ طباعة وتحميل الكشف PDF</button>
+    </div>
 </div>
 
 <script>
-async function processFiles() {
-    const f1Input = document.getElementById('file1').files[0];
-    const f2Input = document.getElementById('file2').files[0];
-    const resultsDiv = document.getElementById('results');
+    document.addEventListener('DOMContentLoaded', () => {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('absenceDate').value = today;
+    });
 
-    if (!f1Input || !f2Input) {
-        alert('الرجاء اختيار الملفين معاً!');
-        return;
+    function openModal(modalId) {
+        document.getElementById(modalId).style.display = 'flex';
     }
 
-    resultsDiv.innerHTML = '<p style="text-align:center; color:#666;">جاري قراءة البيانات ومعالجتها...</p>';
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
 
-    try {
-        const data1 = await readExcel(f1Input);
-        const data2 = await readExcel(f2Input);
+    function saveSchoolName() {
+        const name = document.getElementById('inputSchoolName').value.trim();
+        if (name) {
+            document.getElementById('displaySchoolName').innerText = name;
+            closeModal('schoolModal');
+            alert('تم حفظ اسم المدرسة بنجاح!');
+        }
+    }
 
-        // قراءة الملف الأول (إحصائية الغياب) بافتراض الهيكلة
-        const sheet1 = data1.Sheets[data1.SheetNames[0]];
-        const json1 = XLSX.utils.sheet_to_json(sheet1, { range: 8 });
+    function updateFileLabel(inputId, statusId) {
+        const file = document.getElementById(inputId).files[0];
+        if (file) {
+            document.getElementById(statusId).innerText = `✅ تم اختيار: ${file.name}`;
+        }
+    }
 
-        // قراءة الملف الثاني (بيانات الإرشاد - وغالباً في Sheet2)
-        const targetSheetName2 = data2.SheetNames.includes('Sheet2') ? 'Sheet2' : data2.SheetNames[0];
-        const sheet2 = data2.Sheets[targetSheetName2];
-        const json2 = XLSX.utils.sheet_to_json(sheet2, { range: 3 });
+    let globalAbsentList = [];
 
-        let absentList = [];
-        json1.forEach(row => {
-            // البحث عن اسم الطالب وأعمدة الغياب
-            let nameKeys = Object.keys(row).filter(k => k.includes('الاســـم') || k.includes('الاسم'));
-            let absenceKeys = Object.keys(row).filter(k => k.includes('غياب بدون عذر'));
+    async function processFiles() {
+        const f1Input = document.getElementById('file1').files[0];
+        const f2Input = document.getElementById('file2').files[0];
+        const absenceDate = document.getElementById('absenceDate').value;
+        const customTemplate = document.getElementById('msgTemplate').value;
+        const resultsDiv = document.getElementById('results');
 
-            let name = nameKeys.length > 0 && row[nameKeys[0]] ? String(row[nameKeys[0]]).trim() : '';
-            let absenceVal = absenceKeys.length > 0 ? parseInt(row[absenceKeys[0]] || 0) : 0;
-            
-            if (name && absenceVal > 0) {
-                // البحث عن رقم الجوال في الملف الثاني
-                let matchedStudent = json2.find(s => {
-                    let sNameKeys = Object.keys(s).filter(k => k.includes('اسم الطالب'));
-                    let sName = sNameKeys.length > 0 && s[sNameKeys[0]] ? String(s[sNameKeys[0]]).trim() : '';
-                    return sName === name;
-                });
-
-                let phone = '';
-                if (matchedStudent) {
-                    let phoneKeys = Object.keys(matchedStudent).filter(k => k.includes('الجوال') || k.includes('الهاتف'));
-                    if (phoneKeys.length > 0) {
-                        phone = String(matchedStudent[phoneKeys[0]]).trim();
-                    }
-                }
-                
-                // تنظيف الرقم
-                phone = phone.replace(/[^0-9]/g, '');
-                if (phone.startsWith('05')) {
-                    phone = '966' + phone.substring(1);
-                }
-
-                absentList.push({
-                    name: name,
-                    class: row['الصف'] || '',
-                    section: row['الفصل'] || '',
-                    phone: phone
-                });
-            }
-        });
-
-        if (absentList.length === 0) {
-            resultsDiv.innerHTML = '<div class="error-box">لم يتم العثور على طلاب غائبين (غياب بدون عذر > 0) أو حدث عدم تطابق في أسماء الأعمدة. تأكد أن الملفات صحيحة.</div>';
+        if (!f1Input || !f2Input) {
+            alert('الرجاء إرفاق الملفين من زر (إرفاق ملفات الإكسل) أولاً!');
+            openModal('filesModal');
             return;
         }
 
-        let html = `<h3 style="color:#333; font-size:16px;">الطلاب الغائبين (${absentList.length}):</h3>`;
-        absentList.forEach((student, index) => {
-            let msg = `السلام عليكم ولي أمر الطالب (${student.name})، نود إفادتكم بتغيب ابنكم عن المدرسة اليوم، ونتمنى حضور واهتمام الجميع. شكراً لكم.`;
-            let encodedMsg = encodeURIComponent(msg);
-            let waLink = student.phone ? `https://wa.me/${student.phone}?text=${encodedMsg}` : `#`;
+        resultsDiv.innerHTML = '<p style="text-align:center; color:#475569; margin-top:20px; font-weight:700;">جاري تحليل البيانات...</p>';
 
-            html += `
-                <div class="student-card">
-                    <div class="student-name">${index + 1}. ${student.name}</div>
-                    <div class="student-info">الصف: ${student.class} | الفصل: ${student.section}</div>
-                    <div class="student-info">رقم الجوال: ${student.phone || 'غير متوفر'}</div>
-                    ${student.phone ? `<a href="${waLink}" target="_blank" class="wa-btn">💬 إرسال رسالة واتساب</a>` : '<span style="color:red; font-size:12px;">رقم الجوال غير متاح</span>'}
-                </div>
-            `;
-        });
+        try {
+            const data1 = await readExcel(f1Input);
+            const data2 = await readExcel(f2Input);
 
-        resultsDiv.innerHTML = html;
+            const sheet1 = data1.Sheets[data1.SheetNames[0]];
+            const json1 = XLSX.utils.sheet_to_json(sheet1, { range: 8 });
 
-    } catch (error) {
-        console.error(error);
-        resultsDiv.innerHTML = `<div class="error-box">حدث خطأ تقني أثناء قراءة الملفات:<br>${error.message}</div>`;
-    }
-}
+            const targetSheetName2 = data2.SheetNames.includes('Sheet2') ? 'Sheet2' : data2.SheetNames[0];
+            const sheet2 = data2.Sheets[targetSheetName2];
+            const json2 = XLSX.utils.sheet_to_json(sheet2, { range: 3 });
 
-function readExcel(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                resolve(workbook);
-            } catch (err) {
-                reject(err);
+            globalAbsentList = [];
+            json1.forEach(row => {
+                let nameKeys = Object.keys(row).filter(k => k.includes('الاســـم') || k.includes('الاسم'));
+                let absenceKeys = Object.keys(row).filter(k => k.includes('غياب بدون عذر'));
+
+                let name = nameKeys.length > 0 && row[nameKeys[0]] ? String(row[nameKeys[0]]).trim() : '';
+                let absenceVal = absenceKeys.length > 0 ? parseInt(row[absenceKeys[0]] || 0) : 0;
+                
+                if (name && absenceVal > 0) {
+                    let matchedStudent = json2.find(s => {
+                        let sNameKeys = Object.keys(s).filter(k => k.includes('اسم الطالب'));
+                        let sName = sNameKeys.length > 0 && s[sNameKeys[0]] ? String(s[sNameKeys[0]]).trim() : '';
+                        return sName === name;
+                    });
+
+                    let phone = '';
+                    if (matchedStudent) {
+                        let phoneKeys = Object.keys(matchedStudent).filter(k => k.includes('الجوال') || k.includes('الهاتف'));
+                        if (phoneKeys.length > 0) {
+                            phone = String(matchedStudent[phoneKeys[0]]).trim();
+                        }
+                    }
+                    
+                    phone = phone.replace(/[^0-9]/g, '');
+                    if (phone.startsWith('05')) {
+                        phone = '966' + phone.substring(1);
+                    }
+
+                    globalAbsentList.push({
+                        name: name,
+                        grade: row['الصف'] || '',
+                        section: row['الفصل'] || '',
+                        phone: phone
+                    });
+                }
+            });
+
+            if (globalAbsentList.length === 0) {
+                resultsDiv.innerHTML = '<div class="error-box">لم يتم العثور على طلاب غائبين (غياب بدون عذر > 0).</div>';
+                return;
             }
+
+            let html = `<div style="font-weight:800; color:#1e3c72; font-size:18px; margin-top:25px; border-bottom:2px solid #e2e8f0; padding-bottom:8px;">📊 قائمة الطلاب الغائبين (${globalAbsentList.length}):</div>`;
+            
+            globalAbsentList.forEach((student, index) => {
+                let msg = customTemplate
+                    .replace(/\(اسم الطالب\)/g, student.name)
+                    .replace(/\(التاريخ\)/g, absenceDate);
+
+                let encodedMsg = encodeURIComponent(msg);
+                let waLink = student.phone ? `https://wa.me/${student.phone}?text=${encodedMsg}` : `#`;
+
+                html += `
+                    <div class="student-card">
+                        <div class="student-name">${index + 1}. ${student.name}</div>
+                        <div class="student-info">📁 الصف: ${student.grade} | الفصل: ${student.section}</div>
+                        <div class="student-info">📞 جوال ولي الأمر: ${student.phone || 'غير متوفر'}</div>
+                        ${student.phone ? `<a href="${waLink}" target="_blank" class="wa-btn">💬 إرسال رسالة واتساب فردية</a>` : '<span style="color:#dc2626; font-size:12px; font-weight:700;">⚠️ رقم الجوال غير متاح</span>'}
+                    </div>
+                `;
+            });
+
+            resultsDiv.innerHTML = html;
+
+        } catch (error) {
+            console.error(error);
+            resultsDiv.innerHTML = `<div class="error-box">حدث خطأ أثناء معالجة الملفات:<br>${error.message}</div>`;
+        }
+    }
+
+    function generatePDFReport() {
+        if (globalAbsentList.length === 0) {
+            alert('الرجاء استخراج الغائبين أولاً قبل طباعة الكشف!');
+            closeModal('pdfModal');
+            return;
+        }
+
+        const schoolName = document.getElementById('displaySchoolName').innerText;
+        const absenceDate = document.getElementById('absenceDate').value;
+        const scope = document.getElementById('pdfScope').value;
+
+        let filteredList = globalAbsentList;
+        if (scope === 'first_int') {
+            filteredList = globalAbsentList.filter(s => s.grade.includes('الأول'));
+        } else if (scope === 'sec_int') {
+            filteredList = globalAbsentList.filter(s => s.grade.includes('الثاني'));
+        }
+
+        let printWindow = document.createElement('div');
+        printWindow.style.padding = '20px';
+        printWindow.style.fontFamily = 'IBM Plex Sans Arabic, sans-serif';
+        printWindow.innerHTML = `
+            <div style="text-align:center; border-bottom:3px solid #1e3c72; padding-bottom:15px; margin-bottom:20px;">
+                <h2 style="margin:0; color:#1e3c72;">${schoolName}</h2>
+                <h3 style="margin:5px 0; color:#475569;">كشف الطلاب الغائبين بدون عذر</h3>
+                <p style="margin:0; font-size:14px; color:#64748b;">تاريخ اليوم: ${absenceDate}</p>
+            </div>
+            <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+                <thead>
+                    <tr style="background:#1e3c72; color:white;">
+                        <th style="padding:10px; border:1px solid #cbd5e1;">م</th>
+                        <th style="padding:10px; border:1px solid #cbd5e1;">اسم الطالب</th>
+                        <th style="padding:10px; border:1px solid #cbd5e1;">الصف</th>
+                        <th style="padding:10px; border:1px solid #cbd5e1;">الفصل</th>
+                        <th style="padding:10px; border:1px solid #cbd5e1;">رقم ولي الأمر</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${filteredList.map((s, i) => `
+                        <tr>
+                            <td style="padding:8px; border:1px solid #cbd5e1; text-align:center;">${i+1}</td>
+                            <td style="padding:8px; border:1px solid #cbd5e1; font-weight:bold;">${s.name}</td>
+                            <td style="padding:8px; border:1px solid #cbd5e1; text-align:center;">${s.grade}</td>
+                            <td style="padding:8px; border:1px solid #cbd5e1; text-align:center;">${s.section}</td>
+                            <td style="padding:8px; border:1px solid #cbd5e1; text-align:center;">${s.phone}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+
+        let opt = {
+            margin:       10,
+            filename:     `كشف_الغياب_${absenceDate}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
-        reader.onerror = (err) => reject(err);
-        reader.readAsArrayBuffer(file);
-    });
-}
+
+        html2pdf().from(printWindow).save();
+        closeModal('pdfModal');
+    }
+
+    function readExcel(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    resolve(workbook);
+                } catch (err) { reject(err); }
+            };
+            reader.onerror = (err) => reject(err);
+            reader.readAsArrayBuffer(file);
+        });
+    }
 </script>
 
 </body>
