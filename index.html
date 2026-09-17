@@ -676,6 +676,9 @@
         @media print { .report-print { width:100%; } .report-print-table thead { display:table-header-group; } }
 
         .report-empty-state { padding:18px; text-align:center; background:#f5f8fc; border:1px solid #d7e2ee; border-radius:10px; font-weight:800; color:#526b84; }
+
+        .pdf-export-mode { width:180mm !important; max-width:180mm !important; margin:0 auto !important; box-sizing:border-box !important; overflow:visible !important; }
+        .pdf-export-mode .report-print-table { width:100% !important; }
 </style>
 </head>
 <body>
@@ -691,7 +694,7 @@
     </div>
 
     <h2>نظام متابعة الغياب الذكي</h2>
-    <div class="app-version" aria-label="إصدار التطبيق">v1.6</div>
+    <div class="app-version" aria-label="إصدار التطبيق">v1.7</div>
 
     <section class="main-frame">
         <div class="stats-strip">
@@ -823,7 +826,7 @@
 <div id="soundModalV9" class="modal-overlay"><div class="modal-card"><div class="modal-header"><div class="modal-title">إعدادات الأصوات</div><button class="close-btn" onclick="closeModal('soundModalV9')">✕</button></div><div class="form-group"><label>صوت النقر على الأزرار والقوائم</label><select id="v7Sound" class="form-control" onchange="saveV7Settings()"><option value="on">تشغيل الصوت</option><option value="off">إيقاف الصوت</option></select></div><button class="full-action-btn" onclick="saveV7Settings();closeModal('soundModalV9')">حفظ إعدادات الصوت</button></div></div>
 <div id="backupModalV9" class="modal-overlay"><div class="modal-card"><div class="modal-header"><div class="modal-title">النسخ الاحتياطي</div><button class="close-btn" onclick="closeModal('backupModalV9')">✕</button></div><div class="v7-actions-in"><button style="background:#dff4e9;color:#08754f" onclick="exportV7Backup()">⬇️ تصدير نسخة</button><button style="background:#e4efff;color:#24549b" onclick="document.getElementById('v7Import').click()">⬆️ استيراد نسخة</button><input id="v7Import" type="file" accept=".json" hidden onchange="importV7Backup(this)"></div><button class="full-action-btn danger-btn" style="margin-top:18px" onclick="openModal('resetModalV9')">🗑️ مسح جميع البيانات وتهيئة البرنامج</button></div></div>
 <div id="resetModalV9" class="modal-overlay"><div class="modal-card"><div class="modal-header"><div class="modal-title" style="color:#c8323b">تحذير حذف البيانات</div><button class="close-btn" onclick="closeModal('resetModalV9')">✕</button></div><div class="confirm-text">⚠️ هذا الإجراء لا يمكن التراجع عنه!<br>سيتم حذف جميع الطلاب والغياب وملفات الإرشاد والإعدادات.</div><div class="v7-actions-in"><button class="danger-btn" onclick="resetAllV9()">نعم، احذف جميع البيانات</button><button onclick="closeModal('resetModalV9')">إلغاء</button></div></div></div>
-<div id="reportsModalV7" class="modal-overlay"><div class="modal-card"><div class="modal-header"><div class="modal-title">مركز التقارير</div><button class="close-btn" onclick="closeModal('reportsModalV7')">✕</button></div><div class="v7-tabs"><button id="v7DailyTab" class="active" onclick="showV7Report('daily')">كشف غياب يومي</button><button id="v7StudentTab" onclick="showV7Report('student')">كشف غياب طالب</button></div><div id="v7DailyPane"><div class="form-group"><label>التاريخ</label><input id="v7ReportDate" type="date" class="form-control" onchange="renderV7Daily()"></div><div class="form-group"><label>النطاق</label><select id="v7Scope" class="form-control" onchange="renderV7Daily()"><option value="all">الجميع</option><option value="grade">اختيار مرحلة</option><option value="section">اختيار صف / فصل</option></select></div><div id="v7GradeWrap" style="display:none" class="form-group"><label>المرحلة / الصف</label><select id="v7Grade" class="form-control" onchange="renderV7Daily()"></select></div><div id="v7SectionWrap" style="display:none" class="form-group"><label>الفصل</label><select id="v7Section" class="form-control" onchange="renderV7Daily()"></select></div><div id="v7DailyPreview"></div><button class="full-action-btn v7-print" onclick="exportV7DailyPDF()">📄 تصدير PDF رسمي A4</button></div><div id="v7StudentPane" style="display:none"><div class="form-group"><label>اختر الطالب</label><select id="v7Student" class="form-control" onchange="renderV7Student()"></select></div><div id="v7StudentPreview"></div><button class="full-action-btn v7-print" onclick="exportV7StudentPDF()">📄 تصدير PDF رسمي A4</button></div></div></div>
+<div id="reportsModalV7" class="modal-overlay"><div class="modal-card"><div class="modal-header"><div class="modal-title">مركز التقارير</div><button class="close-btn" onclick="closeModal('reportsModalV7')">✕</button></div><div class="v7-tabs"><button id="v7DailyTab" class="active" onclick="showV7Report('daily')">كشف غياب يومي</button><button id="v7StudentTab" onclick="showV7Report('student')">كشف غياب طالب</button></div><div id="v7DailyPane"><div class="form-group"><label>التاريخ</label><input id="v7ReportDate" type="date" class="form-control" onchange="renderV7Daily()"></div><div class="form-group"><label>النطاق</label><select id="v7Scope" class="form-control" onchange="renderV7Daily()"><option value="all">الجميع</option><option value="grade">اختيار مرحلة</option><option value="section">اختيار صف / فصل</option></select></div><div id="v7GradeWrap" style="display:none" class="form-group"><label>المرحلة / الصف</label><select id="v7Grade" class="form-control" onchange="renderV7Daily()"></select></div><div id="v7SectionWrap" style="display:none" class="form-group"><label>الفصل</label><select id="v7Section" class="form-control" onchange="renderV7Daily()"></select></div><div id="v7DailyPreview"></div><button class="full-action-btn v7-print" onclick="exportV7DailyPDF()">📄 تصدير PDF رسمي A4</button></div><div id="v7StudentPane" style="display:none"><div class="form-group"><label>المرحلة / الصف</label><select id="v7StudentGrade" class="form-control" onchange="updateStudentReportFilters()"><option value="">-- اختر الصف --</option></select></div><div class="form-group"><label>الفصل</label><select id="v7StudentSection" class="form-control" onchange="updateStudentReportStudents()"><option value="">-- اختر الفصل --</option></select></div><div class="form-group"><label>اسم الطالب</label><select id="v7Student" class="form-control" onchange="renderV7Student()"><option value="">-- اختر الطالب --</option></select></div><div id="v7StudentPreview"></div><button class="full-action-btn v7-print" onclick="exportV7StudentPDF()">📄 تصدير PDF رسمي A4</button></div></div></div>
 <div id="studentAbsenceHistoryModal" class="modal-overlay"><div class="modal-card history-modal-card"><div class="modal-header"><div class="modal-title">سجل غياب الطالب</div><button class="close-btn" onclick="closeModal('studentAbsenceHistoryModal')">✕</button></div><div id="studentAbsenceHistoryContent"></div></div></div>
 <div id="savedStatsModal" class="modal-overlay"><div class="modal-card history-modal-card"><div class="modal-header"><div class="modal-title">الإحصائيات المحفوظة</div><button class="close-btn" onclick="closeModal('savedStatsModal')">✕</button></div><div class="settings-note">يمكن حذف سجل يوم كامل من المستودع بالضغط على زر الحذف.</div><div id="savedStatsContent"></div></div></div>
 
@@ -1439,17 +1442,50 @@
     function v7ListFor(date){return allV7Records()[date]?.list||((date===(document.getElementById('absenceDate')?.value||''))?globalAbsentList:[])}
     function v7Rows(list,title,date){return `<div class="v7-panel print-report" id="v7DailyPrint"><h3 style="text-align:center;margin:0;color:#1e3c72;font-weight:900">${document.getElementById('displaySchoolName').innerText}</h3><div style="text-align:center;font-weight:900;margin:5px 0 12px">${title}<br><span style="font-size:11px">التاريخ: ${date}</span></div><table class="report-print-table"><thead><tr><th class="serial-col">م</th><th>اسم الطالب</th><th>الصف</th><th>الفصل</th><th>جوال ولي الأمر</th></tr></thead><tbody>${list.length?list.map((x,i)=>`<tr><td class="serial-col">${i+1}</td><td class="wrap-cell">${x.name}</td><td class="wrap-cell">${x.grade}</td><td class="wrap-cell">${x.section||'غير محدد'}</td><td class="wrap-cell">${x.phone?'0'+x.phone.substring(3):'غير متوفر'}</td></tr>`).join(''):'<tr><td colspan="5">لا توجد بيانات محفوظة لهذا التاريخ</td></tr>'}</tbody></table></div>`}
     function showV7Report(t){document.getElementById('v7DailyPane').style.display=t==='daily'?'block':'none';document.getElementById('v7StudentPane').style.display=t==='student'?'block':'none';document.getElementById('v7DailyTab').classList.toggle('active',t==='daily');document.getElementById('v7StudentTab').classList.toggle('active',t==='student');if(t==='daily')renderV7Daily();else renderV7Student()}
-    function openV7Reports(){document.getElementById('v7ReportDate').value=document.getElementById('absenceDate').value;let records=allV7Records();let dates=Object.keys(records);if(!records[document.getElementById('absenceDate').value]&&globalAbsentList.length){}let grades=[...new Set(Object.values(records).flatMap(r=>r.list.map(x=>x.grade)))];document.getElementById('v7Grade').innerHTML='<option value="all">كل المراحل</option>'+grades.map(x=>`<option>${x}</option>`).join('');let names=[...new Set(Object.values(records).flatMap(r=>r.list.map(x=>x.name)))];document.getElementById('v7Student').innerHTML='<option value="">-- اختر الطالب --</option>'+names.map(x=>`<option>${x}</option>`).join('');renderV7Daily();openModal('reportsModalV7')}
+    function openV7Reports(){
+        document.getElementById('v7ReportDate').value=document.getElementById('absenceDate').value;
+        const records=allV7Records();
+        const all=Object.values(records).flatMap(r=>Array.isArray(r.list)?r.list:[]);
+        const grades=[...new Set(all.map(x=>x.grade).filter(Boolean))].sort();
+        document.getElementById('v7Grade').innerHTML='<option value="all">كل المراحل</option>'+grades.map(x=>`<option>${x}</option>`).join('');
+        document.getElementById('v7StudentGrade').innerHTML='<option value="">-- اختر الصف --</option>'+grades.map(x=>`<option>${x}</option>`).join('');
+        document.getElementById('v7StudentSection').innerHTML='<option value="">-- اختر الفصل --</option>';
+        document.getElementById('v7Student').innerHTML='<option value="">-- اختر الطالب --</option>';
+        renderV7Daily();
+        openModal('reportsModalV7');
+    }
+    function updateStudentReportFilters(){
+        const grade=document.getElementById('v7StudentGrade').value;
+        const sectionSelect=document.getElementById('v7StudentSection');
+        const studentSelect=document.getElementById('v7Student');
+        const all=Object.values(allV7Records()).flatMap(r=>Array.isArray(r.list)?r.list:[]);
+        const sections=[...new Set(all.filter(x=>!grade||x.grade===grade).map(x=>x.section).filter(Boolean))].sort();
+        sectionSelect.innerHTML='<option value="">-- اختر الفصل --</option>'+sections.map(x=>`<option>${x}</option>`).join('');
+        studentSelect.innerHTML='<option value="">-- اختر الطالب --</option>';
+        document.getElementById('v7StudentPreview').innerHTML='';
+        updateStudentReportStudents();
+    }
+    function updateStudentReportStudents(){
+        const grade=document.getElementById('v7StudentGrade').value;
+        const section=document.getElementById('v7StudentSection').value;
+        const all=Object.values(allV7Records()).flatMap(r=>Array.isArray(r.list)?r.list:[]);
+        const names=[...new Set(all.filter(x=>(!grade||x.grade===grade)&&(!section||x.section===section)).map(x=>x.name).filter(Boolean))].sort();
+        document.getElementById('v7Student').innerHTML='<option value="">-- اختر الطالب --</option>'+names.map(x=>`<option>${x}</option>`).join('');
+        document.getElementById('v7StudentPreview').innerHTML='';
+    }
+
     function renderV7Daily(){let date=document.getElementById('v7ReportDate').value,scope=document.getElementById('v7Scope').value,g=document.getElementById('v7Grade').value,s=document.getElementById('v7Section').value;document.getElementById('v7GradeWrap').style.display=scope==='all'?'none':'block';document.getElementById('v7SectionWrap').style.display=scope==='section'?'block':'none';let list=v7ListFor(date);if(scope!=='all')list=list.filter(x=>!g||g==='all'||x.grade===g);if(scope==='section')list=list.filter(x=>!s||s==='all'||x.section===s);document.getElementById('v7DailyPreview').innerHTML=v7Rows(list,'كشف الغياب اليومي',date);let sections=[...new Set(v7ListFor(date).map(x=>x.section))];document.getElementById('v7Section').innerHTML='<option value="all">كل الفصول</option>'+sections.map(x=>`<option>${x}</option>`).join('')}
     function renderV7Student(){
         const name=document.getElementById('v7Student').value;
+        const selectedGrade=document.getElementById('v7StudentGrade').value;
+        const selectedSection=document.getElementById('v7StudentSection').value;
         const target=document.getElementById('v7StudentPreview');
         if (!name) { target.innerHTML='<div class="settings-note report-empty-state">اختر اسم طالب لعرض كشفه الخاص.</div>'; return; }
         const records=allV7Records(); let rows=[];
         // مصدر الأيام الوحيد هو سجل الغياب اليومي المعتمد، وليس أرشيف الأسماء القديم.
         Object.keys(records).sort().forEach(date=>{
             const dayList=Array.isArray(records[date]?.list) ? records[date].list : [];
-            dayList.filter(x=>x && x.name===name).forEach(x=>rows.push({...x,date,status:'غائب'}));
+            dayList.filter(x=>x && x.name===name && (!selectedGrade || x.grade===selectedGrade) && (!selectedSection || x.section===selectedSection)).forEach(x=>rows.push({...x,date,status:'غائب'}));
         });
         rows.sort((a,b)=>a.date.localeCompare(b.date));
         const archive=absenceHistoryArchive[name] || {};
@@ -1460,7 +1496,7 @@
         target.innerHTML=html;
     }
 
-    function exportV7PDF(id,name){html2pdf().from(document.getElementById(id)).set({margin:10,filename:name+'.pdf',html2canvas:{scale:2, letterRendering:true}, pagebreak:{mode:['css','legacy'], avoid:'.report-print tr'}, jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).save()}
+    function exportV7PDF(id,name){const el=document.getElementById(id);if(!el){toastV7('اختر البيانات أولاً لعرض التقرير');return;}el.classList.add('pdf-export-mode');html2pdf().from(el).set({margin:[8,8,8,8],filename:name+'.pdf',image:{type:'jpeg',quality:.96},html2canvas:{scale:1.5,useCORS:true,scrollX:0,scrollY:0},pagebreak:{mode:['css','legacy'],avoid:'.report-print tr'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).save().finally(()=>el.classList.remove('pdf-export-mode'))}
     function exportV7DailyPDF(){exportV7PDF('v7DailyPrint','كشف_غياب_يومي_'+document.getElementById('v7ReportDate').value)}function exportV7StudentPDF(){exportV7PDF('v7StudentPrint','كشف_غياب_طالب')}
     function exportV7Backup(){let d={guidance:localStorage.getItem('guidance_excel_data'),guidanceName:localStorage.getItem('guidance_file_name'),archive:localStorage.getItem('absence_history_archive'),daily:localStorage.getItem('daily_absence_records_v7'),settings:localStorage.getItem('v7_settings')};let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download='نسخة_احتياطية_الغياب.json';a.click();toastV7('تم تصدير النسخة الاحتياطية')}
     function importV7Backup(i){let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(d.guidance)localStorage.setItem('guidance_excel_data',d.guidance);if(d.guidanceName)localStorage.setItem('guidance_file_name',d.guidanceName);if(d.archive)localStorage.setItem('absence_history_archive',d.archive);if(d.daily)localStorage.setItem('daily_absence_records_v7',d.daily);if(d.settings)localStorage.setItem('v7_settings',d.settings);location.reload()}catch(e){toastV7('النسخة غير صالحة')}};r.readAsText(i.files[0])}
