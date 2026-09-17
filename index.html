@@ -639,6 +639,20 @@
         .student-contact-row .student-phone { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px !important; }
         .student-card.sent { border-right-color:#36a269 !important; }
         .student-card.long-pressing { transform:scale(.99); box-shadow:0 0 0 3px rgba(49,94,145,.18) !important; }
+
+        .v7-actions { gap:7px !important; }
+        .v7-actions button { min-height:46px !important; height:46px !important; padding:7px 6px !important; font-size:13px !important; border-radius:10px !important; }
+        input[type="date"].form-control, input[type="date"] { max-width:155px !important; width:155px !important; }
+        .report-date-range input[type="date"] { width:155px !important; max-width:155px !important; }
+        #filesModal input[type="date"] { width:145px !important; max-width:145px !important; }
+        .student-card { margin:6px 0 !important; padding:8px 10px !important; }
+        .student-name { margin-bottom:3px !important; font-size:14px !important; line-height:18px !important; }
+        .student-grade-line { display:flex !important; align-items:center !important; gap:6px !important; white-space:nowrap; }
+        .student-grade-line .sent-badge { flex:0 0 auto; margin-inline-start:5px; padding:2px 6px; font-size:10px; }
+        .student-contact-row { margin-top:4px !important; }
+        .student-contact-row .student-phone { font-size:12px !important; }
+        .student-card { -webkit-touch-callout:none; }
+        .app-version { margin-top:-14px !important; margin-bottom:10px !important; padding:1px 8px !important; font-size:10px !important; }
 </style>
 </head>
 <body>
@@ -654,7 +668,7 @@
     </div>
 
     <h2>نظام متابعة الغياب الذكي</h2>
-    <div class="app-version" aria-label="إصدار التطبيق">v1.2</div>
+    <div class="app-version" aria-label="إصدار التطبيق">v1.3</div>
 
     <section class="main-frame">
         <div class="stats-strip">
@@ -1187,11 +1201,12 @@
     function startCardLongPress(event, name) {
         if (event.target.closest('a, button, input, select, textarea')) return;
         const card = event.currentTarget;
+        if (longPressTimer) clearTimeout(longPressTimer);
         card.classList.add('long-pressing');
         longPressTimer = setTimeout(() => {
             card.classList.remove('long-pressing');
             openStudentAbsenceHistory(name);
-        }, 550);
+        }, 750);
     }
     function cancelCardLongPress() {
         if (longPressTimer) clearTimeout(longPressTimer);
@@ -1205,10 +1220,10 @@
             let msg = customTemplate.replace(/\(اسم الطالب\)/g, student.name).replace(/\(التاريخ\)/g, absenceDate);
             let waLink = student.phone ? `https://wa.me/${student.phone}?text=${encodeURIComponent(msg)}` : '';
             const alreadySent = isMessageSent(student.name, absenceDate);
-            html += `<div class="student-card${alreadySent ? ' sent' : ''}" id="card_${index}" onpointerdown="startCardLongPress(event, ${JSON.stringify(student.name)})" onpointerup="cancelCardLongPress()" onpointerleave="cancelCardLongPress()" onpointercancel="cancelCardLongPress()">
-                <div class="student-name"><span>${index+1}. ${student.name}</span><span id="badge_${index}" style="display:${alreadySent ? 'inline-flex' : 'none'}" class="sent-badge">✅ تم الإرسال</span></div>
-                <div class="student-info">📚 الصف: ${student.grade} &nbsp; • &nbsp; الفصل: ${student.section || 'غير محدد'}</div>
-                <div class="student-contact-row"><a href="${waLink}" target="_blank" class="wa-btn" onclick="markAsSent(${index})">💬 إرسال واتساب</a><span class="student-phone">📞 جوال ولي الأمر: ${student.phone ? '0'+student.phone.substring(3) : 'غير متوفر'}</span></div>
+            html += `<div class="student-card${alreadySent ? ' sent' : ''}" id="card_${index}" onpointerdown="startCardLongPress(event, ${JSON.stringify(student.name)})" onpointerup="cancelCardLongPress()" onpointercancel="cancelCardLongPress()" oncontextmenu="return false">
+                <div class="student-name"><span>${index+1}. ${student.name}</span></div>
+                <div class="student-info student-grade-line">📚 الصف: ${student.grade} &nbsp; • &nbsp; الفصل: ${student.section || 'غير محدد'} <span id="badge_${index}" style="display:${alreadySent ? 'inline-flex' : 'none'}" class="sent-badge">✅ تم الإرسال</span></div>
+                <div class="student-contact-row"><a href="${waLink}" target="_blank" class="wa-btn" onclick="markAsSent(${index})">💬 إرسال واتساب</a><span class="student-phone">📞 ${student.phone ? '0'+student.phone.substring(3) : 'غير متوفر'}</span></div>
             </div>`;
         });
         container.innerHTML=html;
