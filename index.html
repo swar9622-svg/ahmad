@@ -290,21 +290,21 @@
     <h2>نظام متابعة الغياب الذكي</h2>
 
     <div class="dashboard-grid">
-        <button class="dash-btn btn-school" onclick="playSound(); openModal('schoolModal')">
+        <button class="dash-btn btn-school" onclick="openModal('schoolModal')">
             <span>🏫 تعديل وحفظ اسم المدرسة</span>
         </button>
-        <button class="dash-btn btn-files" onclick="playSound(); openModal('filesModal')">
+        <button class="dash-btn btn-files" onclick="openModal('filesModal')">
             <span>📁 إرفاق وإدارة الملفات</span>
         </button>
-        <button class="dash-btn btn-msg" onclick="playSound(); openModal('msgModal')">
+        <button class="dash-btn btn-msg" onclick="openModal('msgModal')">
             <span>✏️ تخصيص نص الرسالة</span>
         </button>
-        <button class="dash-btn btn-pdf" onclick="playSound(); openModal('pdfModal')">
+        <button class="dash-btn btn-pdf" onclick="openModal('pdfModal')">
             <span>🖨️ طباعة كشف الغياب PDF</span>
         </button>
     </div>
 
-    <button class="full-action-btn" onclick="playSound(); processFiles()">⚡ استخراج الغائبين وتجهيز الرسائل</button>
+    <button class="full-action-btn" onclick="processFiles()">⚡ استخراج الغائبين وتجهيز الرسائل</button>
 
     <div id="results"></div>
 </div>
@@ -313,13 +313,13 @@
     <div class="modal-card">
         <div class="modal-header">
             <div class="modal-title">إعدادات المدرسة</div>
-            <button class="close-btn" onclick="playSound(); closeModal('schoolModal')">✕</button>
+            <button class="close-btn" onclick="closeModal('schoolModal')">✕</button>
         </div>
         <div class="form-group">
             <label>أدخل اسم المدرسة:</label>
             <input type="text" id="inputSchoolName" class="form-control" value="متوسطة علي بن أبي طالب">
         </div>
-        <button class="full-action-btn" style="margin:0;" onclick="playSound(); saveSchoolName()">💾 حفظ اسم المدرسة</button>
+        <button class="full-action-btn" style="margin:0;" onclick="saveSchoolName()">💾 حفظ اسم المدرسة</button>
     </div>
 </div>
 
@@ -327,8 +327,9 @@
     <div class="modal-card">
         <div class="modal-header">
             <div class="modal-title">إرفاق الملفات</div>
-            <button class="close-btn" onclick="playSound(); closeModal('filesModal')">✕</button>
+            <button class="close-btn" onclick="closeModal('filesModal')">✕</button>
         </div>
+        <!-- الترتيب الجديد: إحصائية الغياب في الأعلى، وملف الإرشاد بالأسفل -->
         <div class="form-group">
             <label>📁 1. ملف إحصائية الغياب (يتم إرفاقه يومياً):</label>
             <input type="file" id="file1" class="form-control" accept=".xlsx, .xls" onchange="updateFileLabel('file1', 's1')">
@@ -339,7 +340,7 @@
             <input type="file" id="file2" class="form-control" accept=".xlsx, .xls" onchange="saveGuidanceFile(this)">
             <div id="guidanceStatus" style="margin-top: 5px;"></div>
         </div>
-        <button class="full-action-btn" style="margin:0;" onclick="playSound(); closeModal('filesModal')">✔️ إغلاق واعتماد الملفات</button>
+        <button class="full-action-btn" style="margin:0;" onclick="closeModal('filesModal')">✔️ إغلاق واعتماد الملفات</button>
     </div>
 </div>
 
@@ -347,7 +348,7 @@
     <div class="modal-card">
         <div class="modal-header">
             <div class="modal-title">تخصيص الرسالة والتاريخ</div>
-            <button class="close-btn" onclick="playSound(); closeModal('msgModal')">✕</button>
+            <button class="close-btn" onclick="closeModal('msgModal')">✕</button>
         </div>
         <div class="form-group">
             <label>📅 تاريخ الغياب:</label>
@@ -357,7 +358,7 @@
             <label>✏️ نص رسالة الواتساب:</label>
             <textarea id="msgTemplate" class="form-control" style="height:90px;">السلام عليكم ولي أمر الطالب (اسم الطالب)، نود إفادتكم بتغيب ابنكم عن المدرسة ليوم (التاريخ)، ونتمنى حضور واهتمام الجميع. شكراً لكم.</textarea>
         </div>
-        <button class="full-action-btn" style="margin:0;" onclick="playSound(); closeModal('msgModal')">💾 حفظ الإعدادات</button>
+        <button class="full-action-btn" style="margin:0;" onclick="closeModal('msgModal')">💾 حفظ الإعدادات</button>
     </div>
 </div>
 
@@ -365,7 +366,7 @@
     <div class="modal-card">
         <div class="modal-header">
             <div class="modal-title">طباعة وتصدير كشف الغياب PDF</div>
-            <button class="close-btn" onclick="playSound(); closeModal('pdfModal')">✕</button>
+            <button class="close-btn" onclick="closeModal('pdfModal')">✕</button>
         </div>
         <div class="form-group">
             <label>اختر نطاق الطباعة:</label>
@@ -375,7 +376,7 @@
                 <option value="sec_int">الثاني المتوسط فقط</option>
             </select>
         </div>
-        <button class="full-action-btn" style="background:var(--grad-red); margin:0;" onclick="playSound(); generatePDFReport()">🖨️ طباعة وتحميل الكشف PDF</button>
+        <button class="full-action-btn" style="background:var(--grad-red); margin:0;" onclick="generatePDFReport()">🖨️ طباعة وتحميل الكشف PDF</button>
     </div>
 </div>
 
@@ -397,16 +398,32 @@
         } catch (e) {}
     }
 
+    // ربط أصوات الأزرار والقوائم المنسدلة تلقائياً بكل عناصر التفاعل في الصفحة
     document.addEventListener('DOMContentLoaded', () => {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('absenceDate').value = today;
         checkStoredGuidanceData();
+
+        // تفعيل الأصوات لجميع الأزرار، حقول الإدخال، والقوائم المنسدلة (Select)
+        const interactiveElements = document.querySelectorAll('button, select, input[type="file"], input[type="date"], .dash-btn');
+        interactiveElements.forEach(el => {
+            el.addEventListener('click', playSound);
+            el.addEventListener('change', playSound);
+        });
     });
 
-    function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
-    function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+    function openModal(modalId) { 
+        playSound();
+        document.getElementById(modalId).style.display = 'flex'; 
+    }
+    
+    function closeModal(modalId) { 
+        playSound();
+        document.getElementById(modalId).style.display = 'none'; 
+    }
 
     function saveSchoolName() {
+        playSound();
         const name = document.getElementById('inputSchoolName').value.trim();
         if (name) {
             document.getElementById('displaySchoolName').innerText = name;
@@ -416,6 +433,7 @@
     }
 
     function updateFileLabel(inputId, statusId) {
+        playSound();
         const file = document.getElementById(inputId).files[0];
         if (file) { document.getElementById(statusId).innerText = `✅ تم اختيار: ${file.name}`; }
     }
@@ -440,6 +458,7 @@
     }
 
     async function saveGuidanceFile(input) {
+        playSound();
         const file = input.files[0];
         if (!file) return;
 
@@ -465,6 +484,7 @@
     let globalAbsentList = [];
 
     async function processFiles() {
+        playSound();
         const f1Input = document.getElementById('file1').files[0];
         const absenceDate = document.getElementById('absenceDate').value;
         const customTemplate = document.getElementById('msgTemplate').value;
@@ -592,6 +612,7 @@
     }
 
     function generatePDFReport() {
+        playSound();
         if (globalAbsentList.length === 0) {
             alert('الرجاء استخراج الغائبين أولاً قبل طباعة الكشف!');
             closeModal('pdfModal');
