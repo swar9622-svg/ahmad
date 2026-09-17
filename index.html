@@ -592,6 +592,53 @@
         .history-table th:nth-child(2), .history-table td:nth-child(2) { width:48%; }
         .history-table th:nth-child(3), .history-table td:nth-child(3) { width:25%; }
         .history-table th:nth-child(4), .history-table td:nth-child(4) { width:42px; }
+
+        /* ===== v1.2: بطاقة طالب نظيفة بدون دائرة ===== */
+        .student-card {
+            min-height:0 !important;
+            height:auto !important;
+            margin:8px 0 !important;
+            padding:10px 12px !important;
+            border-radius:12px !important;
+            overflow:hidden !important;
+            cursor:pointer;
+            user-select:none;
+            -webkit-user-select:none;
+            touch-action:pan-y;
+        }
+        .student-card .absence-badge { display:none !important; }
+        .student-name {
+            display:block !important;
+            width:100% !important;
+            padding:0 !important;
+            margin:0 0 5px !important;
+            text-align:right !important;
+            font-size:15px !important;
+            line-height:1.35 !important;
+            white-space:nowrap !important;
+            overflow:hidden !important;
+            text-overflow:ellipsis !important;
+        }
+        .student-info {
+            display:block !important;
+            width:100% !important;
+            margin:2px 0 !important;
+            font-size:11px !important;
+            line-height:1.35 !important;
+        }
+        .student-contact-row {
+            display:flex !important;
+            align-items:center !important;
+            justify-content:flex-start !important;
+            width:100% !important;
+            gap:9px !important;
+            margin-top:5px !important;
+            flex-wrap:nowrap !important;
+        }
+        .student-contact-row .wa-btn { margin:0 !important; flex:0 0 auto; padding:6px 10px !important; font-size:11px !important; }
+        .student-contact-row .student-phone { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px !important; }
+        .student-card.sent { border-right-color:#36a269 !important; }
+        .student-card.long-pressing { transform:scale(.99); box-shadow:0 0 0 3px rgba(49,94,145,.18) !important; }
 </style>
 </head>
 <body>
@@ -607,7 +654,7 @@
     </div>
 
     <h2>نظام متابعة الغياب الذكي</h2>
-    <div class="app-version" aria-label="إصدار التطبيق">v1.1.1</div>
+    <div class="app-version" aria-label="إصدار التطبيق">v1.2</div>
 
     <section class="main-frame">
         <div class="stats-strip">
@@ -1136,15 +1183,29 @@
     function isMessageSent(name, date) { const r=sentMessageRecords(); return !!r[`${date}|${name}`]; }
     function saveMessageSent(name, date) { const r=sentMessageRecords(); r[`${date}|${name}`] = { name, date, sentAt:new Date().toISOString() }; localStorage.setItem('sent_message_records', JSON.stringify(r)); autoSaveRepository(); }
 
+    let longPressTimer = null;
+    function startCardLongPress(event, name) {
+        if (event.target.closest('a, button, input, select, textarea')) return;
+        const card = event.currentTarget;
+        card.classList.add('long-pressing');
+        longPressTimer = setTimeout(() => {
+            card.classList.remove('long-pressing');
+            openStudentAbsenceHistory(name);
+        }, 550);
+    }
+    function cancelCardLongPress() {
+        if (longPressTimer) clearTimeout(longPressTimer);
+        longPressTimer = null;
+        document.querySelectorAll('.student-card.long-pressing').forEach(card => card.classList.remove('long-pressing'));
+    }
+
     function renderAbsentList(container, customTemplate, absenceDate) {
         let html = `<div style="font-weight:800;color:#1e3c72;font-size:16px;margin-top:20px;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">📊 قائمة الطلاب الغائبين (${globalAbsentList.length}):</div><div class="sequential-launch"><button class="sequential-launch-btn" onclick="openSequentialMessages()">📨 إرسال الرسائل بالتتابع</button></div>`;
         globalAbsentList.forEach((student, index) => {
             let msg = customTemplate.replace(/\(اسم الطالب\)/g, student.name).replace(/\(التاريخ\)/g, absenceDate);
             let waLink = student.phone ? `https://wa.me/${student.phone}?text=${encodeURIComponent(msg)}` : '';
-            let total = absenceHistoryArchive[student.name]?.dates?.length || 1;
             const alreadySent = isMessageSent(student.name, absenceDate);
-            html += `<div class="student-card${alreadySent ? ' sent' : ''}" id="card_${index}">
-                <div class="absence-badge" onclick="openStudentAbsenceHistory(${JSON.stringify(student.name)})" title="اضغط لعرض سجل الغياب">${total}</div>
+            html += `<div class="student-card${alreadySent ? ' sent' : ''}" id="card_${index}" onpointerdown="startCardLongPress(event, ${JSON.stringify(student.name)})" onpointerup="cancelCardLongPress()" onpointerleave="cancelCardLongPress()" onpointercancel="cancelCardLongPress()">
                 <div class="student-name"><span>${index+1}. ${student.name}</span><span id="badge_${index}" style="display:${alreadySent ? 'inline-flex' : 'none'}" class="sent-badge">✅ تم الإرسال</span></div>
                 <div class="student-info">📚 الصف: ${student.grade} &nbsp; • &nbsp; الفصل: ${student.section || 'غير محدد'}</div>
                 <div class="student-contact-row"><a href="${waLink}" target="_blank" class="wa-btn" onclick="markAsSent(${index})">💬 إرسال واتساب</a><span class="student-phone">📞 جوال ولي الأمر: ${student.phone ? '0'+student.phone.substring(3) : 'غير متوفر'}</span></div>
