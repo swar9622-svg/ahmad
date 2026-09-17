@@ -1,0 +1,1535 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام متابعة الغياب المدرسي الذكي — الإصدار النهائي</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            --grad-blue: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --grad-red: linear-gradient(135deg, #c53030 0%, #e53e3e 100%);
+            --grad-green: linear-gradient(135deg, #047857 0%, #10b981 100%);
+            --grad-purple: linear-gradient(135deg, #5b21b6 0%, #7c3aed 100%);
+            --grad-orange: linear-gradient(135deg, #c2410c 0%, #ea580c 100%);
+            --text-main: #0f172a;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background: linear-gradient(-45deg, #f8fafc, #e2e8f0, #cbd5e1, #f1f5f9);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            margin: 0;
+            padding: 12px;
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        .app-container {
+            max-width: 600px;
+            margin: auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+            border-top: 6px solid #1e3c72;
+        }
+
+        .school-header-card {
+            background: var(--grad-blue);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(30, 60, 114, 0.15);
+        }
+
+        .school-title {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 19px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            color: #1e3c72;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .dash-btn {
+            border: none;
+            color: white;
+            padding: 12px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+
+        .dash-btn:active { transform: scale(0.96); }
+        .btn-school { background: var(--grad-blue); grid-column: span 2; }
+        .btn-files { background: var(--grad-purple); }
+        .btn-msg { background: var(--grad-orange); }
+        .btn-student-report { background: var(--grad-green); grid-column: span 2; }
+        .btn-pdf { background: var(--grad-red); grid-column: span 2; }
+
+        .full-action-btn {
+            background: var(--grad-green);
+            color: white;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            font-size: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 800;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.25);
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+        .full-action-btn:active { transform: scale(0.98); }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .modal-card {
+            background: white;
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+            border-radius: 18px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 8px;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #1e3c72;
+        }
+
+        .close-btn {
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            font-size: 12px;
+            color: #475569;
+            margin-bottom: 5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            font-size: 13px;
+            box-sizing: border-box;
+            background: #f8fafc;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #2563eb;
+            background: #fff;
+        }
+
+        .student-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+            border: 1px solid #e2e8f0;
+            border-right: 6px solid #dc2626;
+            padding: 12px 15px;
+            margin-top: 10px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+            transition: all 0.3s ease;
+        }
+
+        .student-card.sent {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+            border-right-color: #10b981 !important;
+            border-color: #bbf7d0 !important;
+        }
+
+        .student-name {
+            font-weight: 800;
+            color: #1e3c72;
+            font-size: 15px;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .student-info {
+            font-size: 12px;
+            color: #475569;
+            margin: 2px 0;
+            font-weight: 600;
+        }
+
+        .wa-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: #25d366;
+            color: white;
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 8px;
+            box-shadow: 0 3px 8px rgba(37, 211, 102, 0.25);
+        }
+
+        .sent-badge {
+            background: #dcfce7;
+            color: #166534;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .error-box {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 13px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .status-pill {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            margin-top: 5px;
+            display: inline-block;
+            font-weight: 700;
+        }
+        .pill-saved { background: #dcfce7; color: #166534; }
+        .pill-missing { background: #fee2e2; color: #991b1b; }
+    
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}.mini-stat{min-height:72px;border-radius:15px;padding:8px 6px;text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center;border:2px solid;font-weight:800}.mini-stat strong{font-size:25px;line-height:1.05;font-weight:800}.mini-stat span{font-size:11px;font-weight:800;margin-top:4px}.mini-stat.blue{background:#e6f3ff;color:#1971c2;border-color:#9ed0f5}.mini-stat.red{background:#ffe9e8;color:#df3737;border-color:#f3aaaa}.mini-stat.purple{background:#f4eaff;color:#9848bd;border-color:#d9afea}.mini-stat.gold{background:#fff4d9;color:#e78b10;border-color:#f3d18b}.student-card{position:relative;padding:12px 15px;min-height:93px}.student-name{font-size:var(--student-font,16px);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:42px}.student-info{font-size:12px;font-weight:800}.absence-badge{position:absolute;left:12px;top:48px;width:29px;height:29px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#e1f0ff,#a8caf5);color:#24558c;font-weight:800;font-size:13px;box-shadow:inset 0 0 0 2px #fff}.compact-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.compact-actions button{border:0;border-radius:10px;padding:9px;color:#fff;font:800 12px 'IBM Plex Sans Arabic';cursor:pointer}.compact-actions .reports{background:linear-gradient(135deg,#047857,#10b981)}.compact-actions .tools{background:linear-gradient(135deg,#334155,#64748b)}.settings-note{font-size:11px;color:#64748b;margin-top:4px}@media(max-width:520px){.stats-strip{gap:5px}.mini-stat{min-height:65px}.mini-stat strong{font-size:21px}.mini-stat span{font-size:9px}.student-name{font-size:var(--student-font,16px)}}
+
+.stats-strip{grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}.mini-stat{min-height:58px;padding:5px 4px;border-radius:12px;border-width:2px}.mini-stat strong{font-size:20px;font-weight:900;text-align:center}.mini-stat span{font-size:9px;font-weight:900;color:inherit}.mini-stat.blue{background:#e8f4ff;color:#2879bd;border-color:#9ccff2}.mini-stat.purple{background:#f5ebff;color:#9a52bd;border-color:#d9b9ed}.mini-stat.gold{background:#fff6df;color:#df8c13;border-color:#f0d18b}.mini-stat.red{background:#ffeded;color:#dc4242;border-color:#f1aaaa}.dashboard-grid{grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:9px}.dash-btn{padding:9px 7px;border-radius:10px;font-size:11px;min-height:42px}.btn-school,.btn-student-report,.btn-pdf{grid-column:span 1}.full-action-btn{padding:10px;font-size:12px;margin-bottom:10px}.student-card{min-height:90px;padding:11px 14px}.student-name{font-size:var(--student-font,17px)!important;font-weight:var(--student-weight,900)!important;line-height:24px}.student-info{font-weight:800}.absence-badge{top:45px;width:27px;height:27px;font-size:12px}.compact-actions{grid-template-columns:repeat(2,1fr);gap:7px;margin:8px 0}.compact-actions button{padding:8px;border-radius:9px;font-size:11px}.v7-actions{display:grid!important;grid-template-columns:repeat(4,1fr);gap:7px;margin:9px 0}.v7-actions button{border:0;border-radius:10px;padding:9px 4px;font:900 11px 'IBM Plex Sans Arabic';cursor:pointer}.v7-files{background:#eadfff;color:#7040a9}.v7-custom{background:#fff0dc;color:#b66a16}.v7-reports{background:#dcf6f0;color:#087c68}.v7-admin{background:#e5edff;color:#315ca8}.v7-panel{background:#fff;padding:14px;border-radius:12px;border:1px solid #dce5ef;color:#1e3c72}.v7-panel table{width:100%;border-collapse:collapse;font-size:11px}.v7-panel th{background:#dbeafe;color:#1e4d88;padding:7px;font-weight:900}.v7-panel td{border:1px solid #dce5ef;padding:6px;text-align:center;font-weight:700}.v7-panel td:nth-child(2){text-align:right}.v7-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}.v7-tabs button{border:0;border-radius:9px;padding:9px;font:900 12px 'IBM Plex Sans Arabic';background:#edf3fa;color:#526b84}.v7-tabs button.active{background:#dbeafe;color:#1e55a0}.v7-actions-in{display:flex;gap:7px;flex-wrap:wrap}.v7-actions-in button{border:0;border-radius:9px;padding:9px 12px;font:900 11px 'IBM Plex Sans Arabic';cursor:pointer;background:#e5efff;color:#24549b}.v7-print{background:#dff6ec!important;color:#08754f!important}@media(max-width:520px){.v7-actions{gap:4px}.v7-actions button{font-size:9px;padding:8px 2px}.mini-stat strong{font-size:18px}.mini-stat span{font-size:8px}}
+
+.stats-strip{grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}.mini-stat{height:72px;min-height:72px;border-radius:16px;padding:7px 4px;text-align:center;justify-content:center;border:3px solid;font-weight:900;box-shadow:0 5px 0 rgba(30,55,90,.12),0 8px 15px rgba(30,55,90,.10);background-image:linear-gradient(145deg,rgba(255,255,255,.5),rgba(255,255,255,0))}.mini-stat strong{font-size:24px;line-height:1;font-weight:900;text-align:center;display:block}.mini-stat span{font-size:10px;font-weight:900;margin-top:5px;text-align:center}.mini-stat.blue{background:#dff0ff;color:#176bb0;border-color:#8dc7f1}.mini-stat.red{background:#ffe2e2;color:#d7353d;border-color:#ef9498}.mini-stat.purple{background:#f0ddff;color:#9143b1;border-color:#cc91e5}.mini-stat.gold{background:#ffedc2;color:#d77b06;border-color:#eabb62}.v7-actions{grid-template-columns:1fr 1fr;gap:10px;margin:11px 0}.v7-actions button{min-height:56px;border-radius:13px;padding:11px 8px;font-size:13px;font-weight:900;box-shadow:inset 0 2px 0 rgba(255,255,255,.65),0 5px 0 rgba(20,45,80,.20),0 9px 15px rgba(20,45,80,.14);transition:transform .15s,box-shadow .15s}.v7-actions button:active{transform:translateY(3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 2px 0 rgba(20,45,80,.2)}.v7-files{background:linear-gradient(145deg,#8d6be0,#6542b9)!important;color:#fff!important}.v7-custom{background:linear-gradient(145deg,#f4ab55,#df762d)!important;color:#fff!important}.v7-reports{background:linear-gradient(145deg,#36bfa8,#078b78)!important;color:#fff!important}.v7-admin{background:linear-gradient(145deg,#6e8fd1,#3e5e9d)!important;color:#fff!important}.v7-panel{box-shadow:0 7px 18px rgba(20,45,80,.1)}.v7-panel table{font-size:11px}.v7-history-title{font-size:16px;font-weight:900;color:#1e3c72;margin-bottom:10px}.v7-status-absent{color:#d7353d;font-weight:900}.v7-history-table td,.v7-history-table th{padding:8px}.v7-history-table th{background:#1e3c72!important;color:#fff!important}
+@media(max-width:520px){.stats-strip{gap:4px}.mini-stat{height:65px;min-height:65px}.mini-stat strong{font-size:20px}.mini-stat span{font-size:8px}.v7-actions{gap:7px}.v7-actions button{min-height:52px;font-size:11px}}
+
+.main-frame{background:#fff;border:1px solid #dbe5f0;border-radius:18px;padding:12px;box-shadow:0 10px 25px rgba(30,55,90,.08);margin-bottom:13px}.main-frame .stats-strip{margin:0 0 10px}.main-frame .v7-actions{margin:0 0 10px}.extract-btn{margin:0!important;background:linear-gradient(135deg,#18a87c,#07946e)!important;color:#fff!important;font-size:13px!important;font-weight:900!important;border-radius:11px!important;box-shadow:0 4px 0 #087356!important}.extract-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #087356!important}.v7-actions button{box-shadow:0 2px 0 rgba(20,45,80,.16)!important}.admin-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.admin-buttons button{border:0;border-radius:10px;padding:11px 8px;background:#edf3fb;color:#274d7e;font:900 12px 'IBM Plex Sans Arabic';cursor:pointer}.admin-buttons button:hover{background:#dfeafb}.danger-btn{background:#ffe5e5!important;color:#c8323b!important;border:1px solid #f0a1a1!important}.confirm-text{background:#fff0f0;border:1px solid #efb3b3;color:#a6242d;border-radius:10px;padding:11px;font-size:12px;font-weight:800;line-height:1.7;margin-bottom:12px}
+
+
+        :root {
+            --ink-dark: #102a43;
+            --navy: #12345b;
+            --navy-deep: #0b2545;
+            --purple-deep: #54258a;
+            --orange-deep: #a94b0b;
+            --green-deep: #056247;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        body, button, input, select, textarea, label {
+            font-family: 'IBM Plex Sans Arabic', sans-serif !important;
+            font-weight: 700;
+        }
+        button, input, select, textarea { font-size: 15px; }
+
+        .app-container { max-width: 680px; padding: 22px; }
+
+        .school-header-card {
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            gap: 7px;
+            padding: 18px 16px;
+            background: linear-gradient(145deg, #123b6d 0%, #0b2545 100%);
+            border-radius: 16px;
+        }
+        .school-header-card > div:first-child { width: 100%; }
+        .school-header-card > div:last-child {
+            font-size: 34px !important;
+            line-height: 1;
+            order: 2;
+        }
+        .school-header-card > div:first-child { order: 1; }
+        .school-header-card > div:first-child > div:first-child {
+            font-size: 13px !important;
+            font-weight: 800;
+            opacity: .9 !important;
+        }
+        .school-title {
+            font-size: clamp(23px, 5vw, 30px) !important;
+            line-height: 1.35;
+            font-weight: 900 !important;
+            color: #fff;
+        }
+        h2 {
+            font-size: clamp(21px, 4.5vw, 27px);
+            font-weight: 900;
+            margin: 18px 0;
+        }
+
+        .stats-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+        .mini-stat {
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            height: auto !important;
+            min-height: 0 !important;
+            padding: 10px 6px;
+            border-radius: 16px;
+            border-width: 3px;
+        }
+        .mini-stat strong { font-size: clamp(22px, 4vw, 30px); font-weight: 900; }
+        .mini-stat span { font-size: clamp(10px, 1.8vw, 13px); font-weight: 900; line-height: 1.35; }
+
+        .v7-actions { gap: 11px; }
+        .v7-actions button, .dash-btn, .full-action-btn,
+        .compact-actions button, .admin-buttons button,
+        .v7-tabs button, .v7-actions-in button {
+            font-family: 'IBM Plex Sans Arabic', sans-serif !important;
+            font-weight: 900 !important;
+            letter-spacing: 0;
+        }
+        .v7-actions button {
+            min-height: 64px;
+            padding: 13px 10px;
+            border: 2px solid rgba(255,255,255,.35) !important;
+            font-size: 15px !important;
+            text-shadow: 0 1px 1px rgba(0,0,0,.25);
+            box-shadow: 0 4px 0 rgba(7,25,48,.32), 0 9px 18px rgba(7,25,48,.17) !important;
+        }
+        .v7-files { background: linear-gradient(145deg,#6b39a9,#3d176e) !important; }
+        .v7-custom { background: linear-gradient(145deg,#c56b1b,#8d3507) !important; }
+        .v7-reports { background: linear-gradient(145deg,#087e68,#045442) !important; }
+        .v7-admin { background: linear-gradient(145deg,#315b9b,#17386e) !important; }
+        .full-action-btn {
+            min-height: 56px;
+            padding: 14px 16px !important;
+            font-size: 17px !important;
+            border: 2px solid rgba(255,255,255,.35);
+            box-shadow: 0 5px 0 #07543f, 0 10px 18px rgba(7,83,63,.18) !important;
+        }
+
+        .modal-card {
+            max-width: 500px;
+            overflow-x: hidden;
+            padding: 24px;
+        }
+        .modal-title { font-size: 20px; font-weight: 900; }
+        .modal-header { align-items: center; }
+        .form-group label { font-size: 15px; font-weight: 900; color: #213b56; }
+        .form-control {
+            min-height: 48px;
+            padding: 11px 13px;
+            font-size: 16px !important;
+            font-weight: 700 !important;
+            color: #102a43;
+        }
+        textarea.form-control { min-height: 115px; }
+        input[type="date"].form-control { width: 100%; max-width: 100%; display: block; }
+        input[type="file"].form-control {
+            min-height: 58px;
+            padding: 10px;
+            border: 2px dashed #7b61b2;
+            background: linear-gradient(135deg,#f5efff,#edf7ff);
+            color: #42236e;
+        }
+        input[type="file"].form-control::file-selector-button {
+            border: 0;
+            border-radius: 9px;
+            padding: 10px 13px;
+            margin-inline-end: 10px;
+            background: linear-gradient(135deg,#6a42b0,#3d1a72);
+            color: #fff;
+            font: 900 14px 'IBM Plex Sans Arabic';
+            cursor: pointer;
+        }
+        #filesModal .modal-card {
+            background: linear-gradient(150deg,#ffffff 0%,#f4f0ff 50%,#effbfa 100%);
+            border: 3px solid #8e72c4;
+        }
+        #filesModal .form-group {
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(255,255,255,.76);
+            border: 1px solid #d9c9f1;
+            box-shadow: 0 5px 14px rgba(65,35,110,.08);
+        }
+        #filesModal .form-group label { color: #4d287f; }
+
+        .v7-actions-in {
+            justify-content: center;
+            align-items: stretch;
+            gap: 14px;
+            width: 100%;
+        }
+        .v7-actions-in button {
+            flex: 1 1 190px;
+            min-height: 56px;
+            padding: 13px 16px !important;
+            font-size: 16px !important;
+            border: 2px solid rgba(30,70,120,.12) !important;
+            box-shadow: 0 4px 0 rgba(30,55,90,.16);
+        }
+        .v7-actions-in button:active { transform: translateY(2px); }
+        .admin-buttons button { min-height: 52px; font-size: 15px; }
+        .v7-tabs button { min-height: 48px; font-size: 15px; }
+        .close-btn { width: 36px; height: 36px; font-size: 18px; }
+        .v7-panel { overflow-x: auto; }
+        .v7-panel table { min-width: 560px; }
+
+        @media (max-width: 520px) {
+            .app-container { padding: 14px; }
+            .stats-strip { gap: 6px; }
+            .mini-stat { padding: 7px 3px; border-radius: 12px; }
+            .mini-stat strong { font-size: 20px; }
+            .mini-stat span { font-size: 9px; }
+            .v7-actions { gap: 8px; }
+            .v7-actions button { min-height: 58px; padding: 10px 5px; font-size: 12px !important; }
+            .modal-card { padding: 18px; }
+            .v7-actions-in { flex-direction: column; }
+            .v7-actions-in button { width: 100%; flex-basis: auto; }
+        }
+
+        .school-header-card { flex-direction: row; align-items: center; gap: 10px; padding: 13px 16px; }
+        .school-header-card > div:first-child { order: 1; flex: 1; }
+        .school-header-card > div:last-child { order: 2; font-size: 31px !important; }
+        .school-title { font-size: clamp(22px, 4.5vw, 28px) !important; }
+        .v7-actions button { font-size: 17px !important; color: #fff !important; text-shadow: 0 1px 1px rgba(0,0,0,.16); }
+        .v7-files { background: linear-gradient(145deg,#8060bd,#604294) !important; }
+        .v7-custom { background: linear-gradient(145deg,#d8954d,#b96b2d) !important; }
+        .v7-reports { background: linear-gradient(145deg,#4e7fb2,#315e91) !important; }
+        .v7-admin { background: linear-gradient(145deg,#9aa8bb,#65758b) !important; }
+        .full-action-btn.extract-btn { background: linear-gradient(145deg,#36ad88,#168369) !important; }
+        .student-card { background: linear-gradient(135deg,#fff5f5 0%,#ffebeb 100%) !important; border-color:#f2cccc !important; }
+        .student-card.sent { background: linear-gradient(135deg,#f1fff6 0%,#d9f7e5 100%) !important; border-color:#b9e8c9 !important; }
+        .absence-badge { left: auto; right: 12px; top: 12px; width: 38px; height: 38px; font-size: 16px; cursor: pointer; z-index: 2; }
+        .student-name { padding-left: 0 !important; padding-right: 48px; }
+        .student-contact-row { display:flex; align-items:center; justify-content:flex-start; gap:12px; flex-wrap:wrap; margin-top:7px; }
+        .student-contact-row .wa-btn { order:1; margin-top:0; }
+        .student-contact-row .student-phone { order:2; font-size:12px; font-weight:800; color:#475569; }
+        .history-modal-card { max-width:560px; }
+        .history-scroll { max-height:52vh; overflow-y:auto; overflow-x:hidden; border:1px solid #d6e1ee; border-radius:12px; }
+        .history-table { width:100%; border-collapse:collapse; font-size:14px; }
+        .history-table th { position:sticky; top:0; background:#315e91; color:#fff; padding:10px; font-weight:900; }
+        .history-table td { padding:9px; text-align:center; border-bottom:1px solid #e3ebf3; font-weight:700; }
+        .history-table tr:nth-child(even) td { background:#f5f9fd; }
+        .delete-record-btn { border:0; border-radius:8px; background:#f4c6c6; color:#9b3030; padding:7px 10px; font:900 13px 'IBM Plex Sans Arabic'; cursor:pointer; }
+        .file-date-group { background:#eef6ff; border:1px solid #b8d5ee; padding:12px; border-radius:12px; }
+        @media(max-width:520px){ .school-header-card { padding:12px; } .school-header-card > div:last-child { font-size:27px !important; } .v7-actions button { font-size:14px !important; } .student-contact-row { gap:8px; } .student-contact-row .student-phone { font-size:11px; } }
+
+        .report-date-range { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+        .report-date-range label { display:block; font-size:13px; font-weight:900; color:#315e91; margin-bottom:5px; }
+        .hierarchy-title { color:#315e91; font-size:15px; font-weight:900; margin:10px 0; }
+        .hierarchy-table { width:100%; border-collapse:collapse; font-size:14px; }
+        .hierarchy-table th { background:#dbeafe; color:#244f80; padding:9px; font-weight:900; }
+        .hierarchy-table td { border-bottom:1px solid #dbe5ef; padding:9px; text-align:center; font-weight:800; }
+        .hierarchy-table .grade-row { cursor:pointer; background:#f5f9ff; }
+        .hierarchy-table .grade-row:hover { background:#eaf3ff; }
+        .hierarchy-table .detail-row { display:none; background:#fff; }
+        .hierarchy-table .detail-row td { padding:8px 15px; }
+        .nested-table { width:100%; border-collapse:collapse; font-size:13px; }
+        .nested-table th { background:#edf6f3; color:#28705e; padding:7px; }
+        .nested-table td { padding:7px; border-bottom:1px solid #e5eee9; }
+        .total-line td { background:#e9f7f1 !important; color:#176b55; font-weight:900 !important; border-top:2px solid #9ed6c5; }
+        @media(max-width:520px){ .report-date-range { grid-template-columns:1fr; gap:7px; } .hierarchy-table { font-size:12px; } }
+
+        .absence-badge { left:12px; right:auto; top:50%; transform:translateY(-50%); }
+        .student-name { text-align:right !important; padding-right:0 !important; padding-left:50px !important; direction:rtl; }
+        .student-card { padding-left:58px; }
+
+        .school-title { font-size: clamp(19px, 4vw, 24px) !important; }
+        .extract-btn { font-size: 14px !important; min-height: 48px !important; padding: 10px 12px !important; }
+        .modal-card { max-width: 470px; padding: 18px; }
+        #filesModal .modal-card { max-height: 84vh; overflow-y:auto; padding:15px; }
+        #filesModal .form-group { padding:10px; margin-bottom:9px; }
+        #filesModal .form-control { min-height:42px; padding:8px 10px; font-size:14px !important; }
+        #filesModal input[type="file"].form-control { min-height:48px; }
+        input[type="date"].form-control, input[type="date"] { width:100%; max-width:205px; min-width:0; }
+        .report-date-range input[type="date"] { max-width:100%; width:100%; }
+        .history-table { table-layout:fixed; }
+        .history-table th, .history-table td { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .history-table th:nth-child(1), .history-table td:nth-child(1) { width:42px; }
+        .history-table th:nth-last-child(1), .history-table td:nth-last-child(1) { width:58px; }
+        .history-table .delete-record-btn { padding:5px 8px; min-width:44px; font-size:12px; }
+        @media(max-width:520px){ .school-title { font-size:19px !important; } .extract-btn { font-size:12px !important; } #filesModal .modal-card { max-height:88vh; } }
+
+        html, body { max-width:100%; overflow-x:hidden !important; }
+        .app-container, .modal-overlay, .modal-card, .main-frame, #results { max-width:100%; overflow-x:hidden !important; }
+        .modal-card { overflow-y:auto; }
+        .history-scroll, .batch-list { overflow-x:hidden !important; overflow-y:auto; }
+        .v7-panel table, .history-table, .hierarchy-table, .nested-table { min-width:0 !important; width:100%; table-layout:fixed; }
+        .v7-panel { overflow-x:hidden !important; }
+        .v7-panel td, .v7-panel th, .history-table td, .history-table th, .hierarchy-table td, .hierarchy-table th { overflow-wrap:anywhere; word-break:break-word; }
+
+        .absence-badge { width:31px; height:31px; font-size:14px; cursor:pointer; }
+        .sequential-launch { display:flex; justify-content:center; gap:9px; margin:10px 0 12px; flex-wrap:wrap; }
+        .sequential-launch-btn { border:0; border-radius:10px; padding:10px 18px; background:#7185aa; color:#fff; font:900 14px 'IBM Plex Sans Arabic'; cursor:pointer; box-shadow:0 3px 0 #536a8e; }
+        .send-all-btn { border:0; border-radius:10px; padding:10px 18px; background:#25d366; color:#fff; font:900 14px 'IBM Plex Sans Arabic'; cursor:pointer; box-shadow:0 3px 0 #128c48; }
+        .send-all-btn:active { transform:translateY(2px); box-shadow:0 1px 0 #128c48; }
+        .sequential-modal-card { max-width:500px; }
+        .sequential-current { background:#f5f8fc; border:1px solid #d9e3ef; border-radius:12px; padding:15px; margin-top:12px; text-align:center; }
+        .sequential-current strong { display:block; color:#315e91; font-size:19px; margin-bottom:7px; }
+        .sequential-current span { color:#526b84; font-size:14px; font-weight:800; }
+        .sequential-actions { display:flex; gap:9px; margin-top:14px; }
+        .sequential-open-btn, .sequential-next-btn { flex:1; border:0; border-radius:9px; padding:11px 8px; text-align:center; font:900 13px 'IBM Plex Sans Arabic'; cursor:pointer; text-decoration:none; }
+        .sequential-open-btn { background:#c9ead9; color:#176b4e; }
+        .sequential-next-btn { background:#89a4c8; color:#fff; }
+        @media(max-width:520px){ .sequential-actions { flex-direction:column; } .send-all-btn { font-size:12px; padding:9px 14px; } }
+
+        .app-version {
+            width:max-content;
+            margin:-10px auto 14px;
+            padding:3px 12px;
+            border-radius:999px;
+            background:#edf3fb;
+            border:1px solid #c8d8eb;
+            color:#315e91;
+            font:900 13px 'IBM Plex Sans Arabic', sans-serif;
+            direction:ltr;
+            letter-spacing:.3px;
+        }
+
+        #filesModal .modal-card { max-width:430px; max-height:82vh; padding:12px; }
+        #filesModal .modal-header { margin-bottom:8px; padding-bottom:5px; }
+        #filesModal .modal-title { font-size:17px; }
+        #filesModal .form-group { padding:8px; margin-bottom:7px; }
+        #filesModal .form-group label { font-size:12px; }
+        #filesModal .form-control { min-height:36px; padding:6px 8px; font-size:12px !important; }
+        #filesModal input[type="date"] { max-width:165px; }
+        #filesModal input[type="file"].form-control { min-height:39px; padding:5px; background:transparent; border:1px dashed #b8a9d4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#5a6470; }
+        #filesModal input[type="file"].form-control::file-selector-button { padding:6px 9px; margin-inline-end:6px; font-size:11px; background:#8060bd; }
+        #filesModal #s1 { display:block; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:10px !important; }
+        #filesModal .status-pill { font-size:10px; padding:3px 6px; }
+        #filesModal .full-action-btn { min-height:40px !important; padding:8px !important; font-size:13px !important; }
+
+        .student-card { min-height:70px !important; padding:8px 48px 8px 52px !important; margin-top:7px !important; }
+        .student-name { font-size:15px !important; line-height:20px !important; padding:0 !important; text-align:right !important; white-space:nowrap; }
+        .student-info { font-size:11px !important; margin:1px 0 !important; }
+        .student-contact-row { margin-top:3px !important; gap:9px !important; flex-wrap:nowrap !important; justify-content:flex-start !important; }
+        .student-contact-row .wa-btn { padding:5px 9px !important; font-size:11px !important; }
+        .student-contact-row .student-phone { font-size:10px !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .absence-badge { width:29px !important; height:29px !important; font-size:13px !important; left:10px !important; right:auto !important; top:50% !important; }
+        .history-table th:nth-child(2), .history-table td:nth-child(2) { width:48%; }
+        .history-table th:nth-child(3), .history-table td:nth-child(3) { width:25%; }
+        .history-table th:nth-child(4), .history-table td:nth-child(4) { width:42px; }
+
+        .student-card {
+            min-height:0 !important;
+            height:auto !important;
+            margin:8px 0 !important;
+            padding:10px 12px !important;
+            border-radius:12px !important;
+            overflow:hidden !important;
+            cursor:pointer;
+            user-select:none;
+            -webkit-user-select:none;
+            touch-action:pan-y;
+        }
+        .student-card .absence-badge { display:none !important; }
+        .student-name {
+            display:block !important;
+            width:100% !important;
+            padding:0 !important;
+            margin:0 0 5px !important;
+            text-align:right !important;
+            font-size:15px !important;
+            line-height:1.35 !important;
+            white-space:nowrap !important;
+            overflow:hidden !important;
+            text-overflow:ellipsis !important;
+        }
+        .student-info {
+            display:block !important;
+            width:100% !important;
+            margin:2px 0 !important;
+            font-size:11px !important;
+            line-height:1.35 !important;
+        }
+        .student-contact-row {
+            display:flex !important;
+            align-items:center !important;
+            justify-content:flex-start !important;
+            width:100% !important;
+            gap:9px !important;
+            margin-top:5px !important;
+            flex-wrap:nowrap !important;
+        }
+        .student-contact-row .wa-btn { margin:0 !important; flex:0 0 auto; padding:6px 10px !important; font-size:11px !important; }
+        .student-contact-row .student-phone { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px !important; }
+        .student-card.sent { border-right-color:#36a269 !important; }
+        .student-card.long-pressing { transform:scale(.99); box-shadow:0 0 0 3px rgba(49,94,145,.18) !important; }
+
+        .v7-actions { gap:7px !important; }
+        .v7-actions button { min-height:46px !important; height:46px !important; padding:7px 6px !important; font-size:13px !important; border-radius:10px !important; }
+        input[type="date"].form-control, input[type="date"] { max-width:155px !important; width:155px !important; }
+        .report-date-range input[type="date"] { width:155px !important; max-width:155px !important; }
+        #filesModal input[type="date"] { width:145px !important; max-width:145px !important; }
+        .student-card { margin:6px 0 !important; padding:8px 10px !important; }
+        .student-name { margin-bottom:3px !important; font-size:14px !important; line-height:18px !important; }
+        .student-grade-line { display:flex !important; align-items:center !important; gap:6px !important; white-space:nowrap; }
+        .student-grade-line .sent-badge { flex:0 0 auto; margin-inline-start:5px; padding:2px 6px; font-size:10px; }
+        .student-contact-row { margin-top:4px !important; }
+        .student-contact-row .student-phone { font-size:12px !important; }
+        .student-card { -webkit-touch-callout:none; }
+        .app-version { margin-top:-14px !important; margin-bottom:10px !important; padding:1px 8px !important; font-size:10px !important; }
+
+        .report-print { direction:rtl; background:#fff !important; color:#152b43; }
+        .report-print table.report-print-table { width:100% !important; min-width:0 !important; table-layout:fixed; border-collapse:collapse; font-size:12px; }
+        .report-print-table thead { display:table-header-group; }
+        .report-print-table tr { page-break-inside:avoid; break-inside:avoid; }
+        .report-print-table th, .report-print-table td { border:1px solid #cbd8e6; padding:6px 5px; text-align:center; vertical-align:middle; }
+        .report-print-table th { background:#315e91 !important; color:#fff !important; font-weight:900; }
+        .report-print-table .serial-col { width:30px !important; max-width:30px !important; }
+        .report-print-table th:nth-child(2), .report-print-table td:nth-child(2) { width:31%; }
+        .report-print-table th:nth-child(3), .report-print-table td:nth-child(3) { width:16%; }
+        .report-print-table th:nth-child(4), .report-print-table td:nth-child(4) { width:17%; }
+        .report-print-table th:nth-child(5), .report-print-table td:nth-child(5) { width:28%; }
+        .report-print-table .wrap-cell { white-space:normal; overflow-wrap:anywhere; line-height:1.35; }
+        .student-report-heading { text-align:center; margin-bottom:16px; border-bottom:2px solid #b9d0e8; padding-bottom:10px; }
+        .student-report-heading h3 { margin:0 0 5px; color:#315e91; font-size:18px; }
+        .student-report-name { color:#162f4b; font-size:22px; font-weight:900; }
+        .student-report-meta { color:#526b84; font-size:14px; font-weight:800; margin-top:6px; }
+        .student-history-print th:nth-child(2), .student-history-print td:nth-child(2) { width:27%; }
+        .student-history-print th:nth-child(3), .student-history-print td:nth-child(3) { width:25%; }
+        .student-history-print th:nth-child(4), .student-history-print td:nth-child(4) { width:38%; }
+        @media print { .report-print { width:100%; } .report-print-table thead { display:table-header-group; } }
+
+        .report-empty-state { padding:18px; text-align:center; background:#f5f8fc; border:1px solid #d7e2ee; border-radius:10px; font-weight:800; color:#526b84; }
+
+        .pdf-export-mode { width:180mm !important; max-width:180mm !important; margin:0 auto !important; box-sizing:border-box !important; overflow:visible !important; }
+        .pdf-export-mode .report-print-table { width:100% !important; }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <div class="school-header-card">
+        <div>
+            <div style="font-size: 10px; opacity: 0.8;">اسم المدرسة المعتمد:</div>
+            <div id="displaySchoolName" class="school-title">متوسطة علي بن أبي طالب</div>
+        </div>
+        <div style="font-size: 20px;">🏫</div>
+    </div>
+
+    <h2>نظام متابعة الغياب الذكي</h2>
+    <div class="app-version" aria-label="إصدار التطبيق">v1.8</div>
+
+    <section class="main-frame">
+        <div class="stats-strip">
+            <div class="mini-stat blue" ondblclick="openSavedStats()" title="اضغط مرتين لعرض الإحصائيات المحفوظة"><strong id="statSaved">0</strong><span>إحصائيات محفوظة</span></div>
+            <div class="mini-stat red" ondblclick="openTodayAbsenceReport()" title="اضغط مرتين لعرض غياب اليوم"><strong id="statAbsent">0</strong><span>غائبون اليوم</span></div>
+            <div class="mini-stat purple" ondblclick="openTotalAbsenceReport()" title="اضغط مرتين لعرض إجمالي الغياب"><strong id="statStudents">0</strong><span>إجمالي الغياب</span></div>
+            <div class="mini-stat gold"><strong id="statGuidance">—</strong><span>ملف الإرشاد</span></div>
+        </div>
+        <div class="v7-actions">
+            <button class="v7-files" onclick="openModal('filesModal')">📁 إرفاق الملفات</button>
+            <button class="v7-custom" onclick="openModal('msgModal')">✍️ تخصيص</button>
+            <button class="v7-reports" onclick="openV7Reports()">📊 التقارير</button>
+            <button class="v7-admin" onclick="openModal('adminModalV9')">⚙️ إدارة التطبيق</button>
+        </div>
+    </section>
+
+    <div id="results"></div>
+</div>
+
+<!-- Modal: School Name -->
+<div id="schoolModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title">إعدادات المدرسة</div>
+            <button class="close-btn" onclick="closeModal('schoolModal')">✕</button>
+        </div>
+        <div class="form-group">
+            <label>أدخل اسم المدرسة:</label>
+            <input type="text" id="inputSchoolName" class="form-control" value="متوسطة علي بن أبي طالب">
+        </div>
+        <button class="full-action-btn" style="margin:0;" onclick="saveSchoolName()">💾 حفظ اسم المدرسة</button>
+    </div>
+</div>
+
+<!-- Modal: Files -->
+<div id="filesModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title">إرفاق الملفات</div>
+            <button class="close-btn" onclick="closeModal('filesModal')">✕</button>
+        </div>
+        
+        <div class="form-group file-date-group">
+            <label>📅 تاريخ الغياب لهذا الملف:</label>
+            <input type="date" id="fileAbsenceDate" class="form-control" onchange="syncFileAbsenceDate(this.value)">
+        </div>
+
+        <div class="form-group">
+            <label>📁 1. ملف إحصائية الغياب اليومي:</label>
+            <input type="file" id="file1" class="form-control" accept=".xlsx, .xls" onchange="updateFileLabel('file1', 's1')">
+            <div id="s1" style="font-size:11px; color:#10b981; margin-top:3px; font-weight:700;"></div>
+        </div>
+
+        <div class="form-group">
+            <label>📁 2. ملف بيانات الإرشاد والجوالات (يُحفظ تلقائياً لمرة واحدة):</label>
+            <input type="file" id="file2" class="form-control" accept=".xlsx, .xls" onchange="saveGuidanceFile(this)">
+            <div id="guidanceStatus" style="margin-top: 5px;"></div>
+        </div>
+
+        <button class="full-action-btn" style="margin:0;" onclick="approveFiles()">✔️ اعتماد الملفات واستخراج البيانات</button>
+    </div>
+</div>
+
+<!-- Modal: Message -->
+<div id="msgModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title">تخصيص الرسالة والتاريخ</div>
+            <button class="close-btn" onclick="closeModal('msgModal')">✕</button>
+        </div>
+        <div class="form-group">
+            <label>📅 تاريخ الغياب الافتراضي:</label>
+            <input type="date" id="absenceDate" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>✏️ نص رسالة الواتساب:</label>
+            <textarea id="msgTemplate" class="form-control" style="height:90px;">السلام عليكم ولي أمر الطالب (اسم الطالب), نود إفادتكم بتغيب ابنكم عن المدرسة ليوم (التاريخ), ونتمنى حضور واهتمام الجميع. شكراً لكم.</textarea>
+        </div>
+        <button class="full-action-btn" style="margin:0;" onclick="closeModal('msgModal')">💾 حفظ الإعدادات</button>
+    </div>
+</div>
+
+<!-- Modal: Single Student History Report -->
+<div id="studentReportModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title">كشف غياب طالب محدد</div>
+            <button class="close-btn" onclick="closeModal('studentReportModal')">✕</button>
+        </div>
+        <div class="form-group">
+            <label>📚 اختر المرحلة الدراسية:</label>
+            <select id="reportGrade" class="form-control" onchange="updateStudentDropdown()">
+                <option value="">-- اختر المرحلة/الصف --</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>👤 اختر اسم الطالب:</label>
+            <select id="reportStudentName" class="form-control">
+                <option value="">-- اختر الطالب بعد تحديد المرحلة --</option>
+            </select>
+        </div>
+        <button class="full-action-btn" style="background:var(--grad-green); margin:0;" onclick="generateSingleStudentReport()">📊 إظهار سجل التواريخ والأيام</button>
+    </div>
+</div>
+
+<!-- Modal: PDF Print -->
+<div id="pdfModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title">طباعة وتصدير كشف الغياب PDF</div>
+            <button class="close-btn" onclick="closeModal('pdfModal')">✕</button>
+        </div>
+        <div class="form-group">
+            <label>اختر نطاق الطباعة:</label>
+            <select id="pdfScope" class="form-control">
+                <option value="all">جميع المراحل والفصول الغائبة</option>
+                <option value="first_int">الأول المتوسط فقط</option>
+                <option value="sec_int">الثاني المتوسط فقط</option>
+            </select>
+        </div>
+        <button class="full-action-btn" style="background:var(--grad-red); margin:0;" onclick="generatePDFReport()">🖨️ طباعة وتحميل الكشف PDF</button>
+    </div>
+</div>
+
+<div id="adminModalV9" class="modal-overlay"><div class="modal-card"><div class="modal-header"><div class="modal-title">إدارة التطبيق</div><button class="close-btn" onclick="closeModal('adminModalV9')">✕</button></div><div class="admin-buttons"><button onclick="closeModal('adminModalV9');openModal('schoolModal')">🏫 تغيير اسم المدرسة</button><button onclick="closeModal('adminModalV9');openModal('fontModalV9')">🔤 حجم وسماكة الأسماء</button><button onclick="closeModal('adminModalV9');openModal('soundModalV9')">🔊 الأصوات</button><button onclick="closeModal('adminModalV9');openModal('backupModalV9')">💾 النسخ الاحتياطي</button></div></div></div>
+<div id="fontModalV9" class="modal-overlay"><div class="modal-card"><div class="modal-header"><div class="modal-title">حجم وسماكة خط أسماء الطلاب</div><button class="close-btn" onclick="closeModal('fontModalV9')">✕</button></div><div class="form-group"><label>حجم الخط</label><input id="v7Font" type="number" min="12" max="26" class="form-control" onchange="saveV7Settings()"></div><div class="form-group"><label>سماكة الخط</label><select id="v7Weight" class="form-control" onchange="saveV7Settings()"><option value="700">عريض</option><option value="800">عريض جدًا</option><option value="900">عريض جدًا جدًا</option></select></div><button class="full-action-btn" onclick="saveV7Settings();closeModal('fontModalV9')">حفظ الإعدادات</button></div></div>
+<div id="soundModalV9" class="modal-overlay"><div class="modal-card"><div class="modal-header"><div class="modal-title">إعدادات الأصوات</div><button class="close-btn" onclick="closeModal('soundModalV9')">✕</button></div><div class="form-group"><label>صوت النقر على الأزرار والقوائم</label><select id="v7Sound" class="form-control" onchange="saveV7Settings()"><option value="on">تشغيل الصوت</option><option value="off">إيقاف الصوت</option></select></div><button class="full-action-btn" onclick="saveV7Settings();closeModal('soundModalV9')">حفظ إعدادات الصوت</button></div></div>
+<div id="backupModalV9" class="modal-overlay"><div class="modal-card"><div class="modal-header"><div class="modal-title">النسخ الاحتياطي</div><button class="close-btn" onclick="closeModal('backupModalV9')">✕</button></div><div class="v7-actions-in"><button style="background:#dff4e9;color:#08754f" onclick="exportV7Backup()">⬇️ تصدير نسخة</button><button style="background:#e4efff;color:#24549b" onclick="document.getElementById('v7Import').click()">⬆️ استيراد نسخة</button><input id="v7Import" type="file" accept=".json" hidden onchange="importV7Backup(this)"></div><button class="full-action-btn danger-btn" style="margin-top:18px" onclick="openModal('resetModalV9')">🗑️ مسح جميع البيانات وتهيئة البرنامج</button></div></div>
+<div id="resetModalV9" class="modal-overlay"><div class="modal-card"><div class="modal-header"><div class="modal-title" style="color:#c8323b">تحذير حذف البيانات</div><button class="close-btn" onclick="closeModal('resetModalV9')">✕</button></div><div class="confirm-text">⚠️ هذا الإجراء لا يمكن التراجع عنه!<br>سيتم حذف جميع الطلاب والغياب وملفات الإرشاد والإعدادات.</div><div class="v7-actions-in"><button class="danger-btn" onclick="resetAllV9()">نعم، احذف جميع البيانات</button><button onclick="closeModal('resetModalV9')">إلغاء</button></div></div></div>
+<div id="reportsModalV7" class="modal-overlay"><div class="modal-card"><div class="modal-header"><div class="modal-title">مركز التقارير</div><button class="close-btn" onclick="closeModal('reportsModalV7')">✕</button></div><div class="v7-tabs"><button id="v7DailyTab" class="active" onclick="showV7Report('daily')">كشف غياب يومي</button><button id="v7StudentTab" onclick="showV7Report('student')">كشف غياب طالب</button></div><div id="v7DailyPane"><div class="form-group"><label>التاريخ</label><input id="v7ReportDate" type="date" class="form-control" onchange="renderV7Daily()"></div><div class="form-group"><label>النطاق</label><select id="v7Scope" class="form-control" onchange="renderV7Daily()"><option value="all">الجميع</option><option value="grade">اختيار مرحلة</option><option value="section">اختيار صف / فصل</option></select></div><div id="v7GradeWrap" style="display:none" class="form-group"><label>المرحلة / الصف</label><select id="v7Grade" class="form-control" onchange="renderV7Daily()"></select></div><div id="v7SectionWrap" style="display:none" class="form-group"><label>الفصل</label><select id="v7Section" class="form-control" onchange="renderV7Daily()"></select></div><div id="v7DailyPreview"></div><button class="full-action-btn v7-print" onclick="exportV7DailyPDF()">📄 تصدير PDF رسمي A4</button></div><div id="v7StudentPane" style="display:none"><div class="form-group"><label>المرحلة / الصف</label><select id="v7StudentGrade" class="form-control" onchange="updateStudentReportFilters()"><option value="">-- اختر الصف --</option></select></div><div class="form-group"><label>الفصل</label><select id="v7StudentSection" class="form-control" onchange="updateStudentReportStudents()"><option value="">-- اختر الفصل --</option></select></div><div class="form-group"><label>اسم الطالب</label><select id="v7Student" class="form-control" onchange="renderV7Student()"><option value="">-- اختر الطالب --</option></select></div><div id="v7StudentPreview"></div><button class="full-action-btn v7-print" onclick="exportV7StudentPDF()">📄 تصدير PDF رسمي A4</button></div></div></div>
+<div id="studentAbsenceHistoryModal" class="modal-overlay"><div class="modal-card history-modal-card"><div class="modal-header"><div class="modal-title">سجل غياب الطالب</div><button class="close-btn" onclick="closeModal('studentAbsenceHistoryModal')">✕</button></div><div id="studentAbsenceHistoryContent"></div></div></div>
+<div id="savedStatsModal" class="modal-overlay"><div class="modal-card history-modal-card"><div class="modal-header"><div class="modal-title">الإحصائيات المحفوظة</div><button class="close-btn" onclick="closeModal('savedStatsModal')">✕</button></div><div class="settings-note">يمكن حذف سجل يوم كامل من المستودع بالضغط على زر الحذف.</div><div id="savedStatsContent"></div></div></div>
+
+<div id="todayAbsenceReportModal" class="modal-overlay"><div class="modal-card history-modal-card"><div class="modal-header"><div class="modal-title">غياب اليوم حسب الصف والفصل</div><button class="close-btn" onclick="closeModal('todayAbsenceReportModal')">✕</button></div><div id="todayAbsenceReportContent"></div></div></div>
+<div id="totalAbsenceReportModal" class="modal-overlay"><div class="modal-card history-modal-card"><div class="modal-header"><div class="modal-title">إجمالي الغياب حسب المدة</div><button class="close-btn" onclick="closeModal('totalAbsenceReportModal')">✕</button></div><div class="report-date-range"><div><label>من تاريخ</label><input id="totalFromDate" type="date" class="form-control" onchange="renderTotalAbsenceReport()"></div><div><label>إلى تاريخ</label><input id="totalToDate" type="date" class="form-control" onchange="renderTotalAbsenceReport()"></div></div><div id="totalAbsenceReportContent"></div></div></div>
+
+<div id="sequentialMessagesModal" class="modal-overlay"><div class="modal-card sequential-modal-card"><div class="modal-header"><div class="modal-title">إرسال الرسائل بالتتابع</div><button class="close-btn" onclick="closeModal('sequentialMessagesModal')">✕</button></div><div id="sequentialSummary" class="settings-note"></div><div id="sequentialCurrent"></div><div class="sequential-actions"><a id="sequentialOpenLink" class="sequential-open-btn" target="_blank">فتح محادثة واتساب</a><button class="sequential-next-btn" onclick="nextSequentialStudent()">تم الإرسال — التالي</button></div></div></div>
+
+<script>
+    let audioCtx = null;
+
+    function playSound() {
+        if (typeof v7Settings !== 'undefined' && v7Settings.sound === 'off') return;
+        try {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(580, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(320, audioCtx.currentTime + 0.08);
+            
+            gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.08);
+        } catch (e) {}
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('absenceDate').value = today; initFileAbsenceDate();
+        checkStoredGuidanceData(); restoreSavedWork(); updateV5Stats(); updateV7Stats(); let savedSchool=localStorage.getItem('v5_school_name'); if(savedSchool) document.getElementById('displaySchoolName').innerText=savedSchool; setTimeout(()=>{if(document.getElementById('v7Font'))document.getElementById('v7Font').value=v7Settings.font||17;if(document.getElementById('v7Weight'))document.getElementById('v7Weight').value=v7Settings.weight||900;if(document.getElementById('v7Sound'))document.getElementById('v7Sound').value=v7Settings.sound||'on';},0);
+
+        document.body.addEventListener('click', (e) => {
+            if (e.target.closest('button, select, input, label, a, .dash-btn')) {
+                playSound();
+            }
+        });
+        
+        document.body.addEventListener('change', (e) => {
+            if (e.target.closest('select, input')) {
+                playSound();
+            }
+        });
+    });
+
+    function openModal(modalId) { 
+        playSound();
+        if (modalId === 'filesModal') initFileAbsenceDate();
+        document.getElementById(modalId).style.display = 'flex'; 
+    }
+    
+    function closeModal(modalId) { 
+        playSound();
+        document.getElementById(modalId).style.display = 'none'; 
+    }
+
+    function syncFileAbsenceDate(value) {
+        if (value) document.getElementById('absenceDate').value = value;
+    }
+
+    function initFileAbsenceDate() {
+        const value = document.getElementById('absenceDate')?.value || new Date().toISOString().split('T')[0];
+        const input = document.getElementById('fileAbsenceDate');
+        if (input) input.value = value;
+    }
+
+    function saveSchoolName() {
+        playSound();
+        const name = document.getElementById('inputSchoolName').value.trim();
+        if (name) {
+            document.getElementById('displaySchoolName').innerText = name; localStorage.setItem('v5_school_name', name); autoSaveRepository();
+            closeModal('schoolModal');
+            alert('تم حفظ اسم المدرسة بنجاح!');
+        }
+    }
+
+    function updateFileLabel(inputId, statusId) {
+        playSound();
+        const file = document.getElementById(inputId).files[0];
+        if (file) document.getElementById(statusId).innerText = `تم اختيار: ${file.name}`;
+    }
+
+    let cachedJson2 = null;
+    let absenceHistoryArchive = {}; try { absenceHistoryArchive = JSON.parse(localStorage.getItem('absence_history_archive') || '{}') || {}; } catch(e) { localStorage.removeItem('absence_history_archive'); absenceHistoryArchive = {}; }
+
+    function checkStoredGuidanceData() {
+        const savedData = localStorage.getItem('guidance_excel_data');
+        const savedFileName = localStorage.getItem('guidance_file_name');
+        const statusDiv = document.getElementById('guidanceStatus');
+        
+        if (savedData) {
+            try {
+                cachedJson2 = JSON.parse(savedData);
+                statusDiv.innerHTML = `<span class="status-pill pill-saved">✅ ملف الإرشاد محفوظ (${savedFileName || 'الملف السابق'})</span>`;
+            } catch (e) {
+                localStorage.removeItem('guidance_excel_data');
+            }
+        } else {
+            statusDiv.innerHTML = `<span class="status-pill pill-missing">⚠️ لم يتم حفظ ملف الإرشاد بعد (الرجاء إرفاقه مرة واحدة)</span>`;
+        }
+    }
+
+    async function saveGuidanceFile(input) {
+        playSound();
+        const file = input.files[0];
+        if (!file) return;
+
+        try {
+            document.getElementById('guidanceStatus').innerHTML = `<span class="status-pill" style="background:#e0f2fe; color:#0369a1;">⏳ جاري قراءة وحفظ ملف الإرشاد...</span>`;
+            const data2 = await readExcel(file);
+            const targetSheetName2 = data2.SheetNames.includes('Sheet2') ? 'Sheet2' : data2.SheetNames[0];
+            const sheet2 = data2.Sheets[targetSheetName2];
+            const json2 = XLSX.utils.sheet_to_json(sheet2);
+
+            cachedJson2 = json2;
+            localStorage.setItem('guidance_excel_data', JSON.stringify(json2));
+            localStorage.setItem('guidance_file_name', file.name); autoSaveRepository();
+
+            checkStoredGuidanceData(); updateV5Stats(); updateV7Stats();
+            alert('تم حفظ بيانات الإرشاد والجوالات بنجاح في جهازك ولن تحتاج لإرفاقها مرة أخرى!');
+        } catch (err) {
+            alert('حدث خطأ أثناء قراءة ملف الإرشاد: ' + err.message);
+            checkStoredGuidanceData(); updateV5Stats(); updateV7Stats();
+        }
+    }
+
+    let globalAbsentList = [];
+
+    async function approveFiles() {
+        playSound();
+        await processFiles();
+        if (globalAbsentList.length) closeModal('filesModal');
+    }
+
+    function restoreSavedWork() {
+        try {
+            const records = allSavedDailyRecords();
+            const dates = Object.keys(records).sort();
+            if (!dates.length) return;
+            const date = dates[dates.length - 1];
+            const saved = records[date];
+            if (!saved || !Array.isArray(saved.list)) return;
+            globalAbsentList = saved.list;
+            document.getElementById('absenceDate').value = date;
+            initFileAbsenceDate();
+            renderAbsentList(document.getElementById('results'), document.getElementById('msgTemplate').value, date);
+            updateV7Stats();
+        } catch (e) { console.warn('تعذر استعادة آخر عمل محفوظ', e); }
+    }
+
+    async function processFiles() {
+        playSound();
+        const f1Input = document.getElementById('file1').files[0];
+        const absenceDate = document.getElementById('absenceDate').value;
+        const customTemplate = document.getElementById('msgTemplate').value;
+        const resultsDiv = document.getElementById('results');
+
+        if (!f1Input) {
+            alert('الرجاء إرفاق ملف إحصائية الغياب اليومي في الخانة العليا!');
+            openModal('filesModal');
+            return;
+        }
+
+        if (!cachedJson2) {
+            alert('الرجاء إرفاق ملف بيانات الإرشاد والجوالات في الخانة السفلى (لأول مرة فقط)!');
+            openModal('filesModal');
+            return;
+        }
+
+        resultsDiv.innerHTML = '<p style="text-align:center; color:#475569; margin-top:15px; font-weight:700;">جاري مطابقة أسماء الطلاب وأرقام الهواتف بدقة...</p>';
+
+        try {
+            const data1 = await readExcel(f1Input);
+            if (!data1 || !data1.SheetNames || !data1.SheetNames.length) throw new Error('تعذر قراءة ورقة البيانات من الملف');
+            const sheet1 = data1.Sheets[data1.SheetNames[0]];
+            if (!sheet1) throw new Error('ورقة البيانات غير موجودة في الملف');
+            const json1 = XLSX.utils.sheet_to_json(sheet1, { range: 8 });
+
+            globalAbsentList = [];
+            json1.forEach(row => {
+                let nameKeys = Object.keys(row).filter(k => k.includes('الاســـم') || k.includes('الاسم') || k.includes('طالب'));
+                let absenceKeys = Object.keys(row).filter(k => k.includes('غياب بدون عذر') || k.includes('بدون عذر'));
+
+                let name = '';
+                for (let k of nameKeys) {
+                    if (row[k]) { name = String(row[k]).trim(); break; }
+                }
+
+                let absenceVal = 0;
+                for (let k of absenceKeys) {
+                    let val = parseInt(row[k]);
+                    if (!isNaN(val)) { absenceVal = val; break; }
+                }
+                
+                if (name && absenceVal > 0) {
+                    let grade = String(row['الصف'] || row['المرحلة'] || 'غير محدد').trim();
+                    let section = String(row['الفصل'] || row['الشعبة'] || '').trim();
+
+                    if (!absenceHistoryArchive[name]) {
+                        absenceHistoryArchive[name] = { grade: grade, section: section, dates: [] };
+                    }
+                    absenceHistoryArchive[name].grade = grade;
+                    absenceHistoryArchive[name].section = section;
+                    if (!absenceHistoryArchive[name].dates.includes(absenceDate)) {
+                        absenceHistoryArchive[name].dates.push(absenceDate);
+                    }
+
+                    let foundPhone = '';
+                    for (let s of cachedJson2) {
+                        let sValues = Object.values(s).map(v => String(v).trim());
+                        let matchName = sValues.some(val => val.includes(name) || name.includes(val));
+                        
+                        if (matchName) {
+                            for (let val of sValues) {
+                                let cleanVal = val.replace(/[^0-9]/g, '');
+                                if (cleanVal.length >= 9 && (cleanVal.startsWith('05') || cleanVal.startsWith('9665') || cleanVal.length === 10)) {
+                                    foundPhone = cleanVal;
+                                    break;
+                                }
+                            }
+                            if (foundPhone) break;
+                        }
+                    }
+
+                    if (!foundPhone) {
+                        const toLatin = v => String(v ?? '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+                        const normalizeName = v => toLatin(v).replace(/[ًٌٍَُِّْـ]/g, '').replace(/[إأآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '').toLowerCase();
+                        const targetName = normalizeName(name);
+                        for (let s of cachedJson2) {
+                            const values = Object.values(s).map(v => String(v ?? '').trim()).filter(Boolean);
+                            const matched = values.some(v => { const n = normalizeName(v); return n && (n === targetName || n.includes(targetName) || targetName.includes(n)); });
+                            if (matched) {
+                                for (let val of values) {
+                                    let digits = toLatin(val).replace(/[^0-9]/g, '');
+                                    if (digits.startsWith('00966')) digits = digits.substring(2);
+                                    if (digits.startsWith('05')) digits = '966' + digits.substring(1);
+                                    if (digits.length === 9 && digits.startsWith('5')) digits = '966' + digits;
+                                    if (/^9665\d{8}$/.test(digits)) { foundPhone = digits; break; }
+                                }
+                            }
+                            if (foundPhone) break;
+                        }
+                    }
+
+                    if (foundPhone) {
+                        if (foundPhone.startsWith('05')) {
+                            foundPhone = '966' + foundPhone.substring(1);
+                        } else if (foundPhone.length === 9 && foundPhone.startsWith('5')) {
+                            foundPhone = '966' + foundPhone;
+                        }
+                    }
+
+                    globalAbsentList.push({
+                        name: name,
+                        grade: grade,
+                        section: section,
+                        phone: foundPhone
+                    });
+                }
+            });
+
+            localStorage.setItem('absence_history_archive', JSON.stringify(absenceHistoryArchive));
+
+            if (globalAbsentList.length === 0) {
+                resultsDiv.innerHTML = '<div class="error-box">لم يتم العثور على طلاب غائبين (غياب بدون عذر > 0) في هذا الملف.</div>';
+                return;
+            }
+
+            renderAbsentList(resultsDiv, customTemplate, absenceDate); localStorage.setItem('daily_absence_records_v7', JSON.stringify(Object.assign(JSON.parse(localStorage.getItem('daily_absence_records_v7')||'{}'), {[absenceDate]: {date: absenceDate, list: globalAbsentList, savedAt: new Date().toISOString()}}))); updateV7Stats(); autoSaveRepository();
+
+        } catch (error) {
+            console.error(error);
+            const safeMessage = error && (error.message || error.toString()) ? (error.message || error.toString()) : 'تعذر قراءة الملف. تأكد من أنه ملف Excel صحيح.';
+            resultsDiv.innerHTML = `<div class="error-box">حدث خطأ أثناء معالجة الملف:<br>${safeMessage}</div>`;
+        }
+    }
+
+    function allSavedDailyRecords() {
+        try { return JSON.parse(localStorage.getItem('daily_absence_records_v7') || '{}'); } catch(e) { return {}; }
+    }
+
+    let hierarchyCounter = 0;
+    const hierarchyData = {};
+    function renderAbsenceHierarchy(list, targetId, heading) {
+        const target = document.getElementById(targetId);
+        const groups = {};
+        (list || []).forEach(x => { const grade = x.grade || 'غير محدد'; const section = x.section || 'غير محدد'; if (!groups[grade]) groups[grade] = {}; groups[grade][section] = (groups[grade][section] || 0) + 1; });
+        const grades = Object.keys(groups).sort();
+        let total = list ? list.length : 0;
+        let html = `<div class="hierarchy-title">${heading}</div><table class="hierarchy-table"><thead><tr><th>الصف / المرحلة</th><th>العدد</th></tr></thead><tbody>`;
+        if (!grades.length) html += '<tr><td colspan="2">لا توجد بيانات في النطاق المحدد</td></tr>';
+        grades.forEach(grade => {
+            const id = 'hier_' + (++hierarchyCounter);
+            hierarchyData[id] = true;
+            const count = Object.values(groups[grade]).reduce((a,b)=>a+b,0);
+            const details = Object.entries(groups[grade]).map(([section,count])=>`<tr><td>${section}</td><td>${count}</td></tr>`).join('');
+            html += `<tr class="grade-row" onclick="toggleHierarchy('${id}')"><td>▸ ${grade}</td><td>${count}</td></tr><tr id="${id}" class="detail-row"><td colspan="2"><table class="nested-table"><thead><tr><th>الفصل</th><th>العدد</th></tr></thead><tbody>${details}</tbody></table></td></tr>`;
+        });
+        html += `<tr class="total-line"><td>المجموع</td><td>${total}</td></tr></tbody></table>`;
+        target.innerHTML = html;
+    }
+    function toggleHierarchy(id) { const row=document.getElementById(id); if(!row) return; row.style.display = row.style.display === 'table-row' ? 'none' : 'table-row'; }
+    function todayReportDate() { return document.getElementById('absenceDate')?.value || new Date().toISOString().split('T')[0]; }
+    function openTodayAbsenceReport() {
+        playSound();
+        const date = todayReportDate();
+        const records = allSavedDailyRecords();
+        const list = records[date]?.list || globalAbsentList || [];
+        renderAbsenceHierarchy(list, 'todayAbsenceReportContent', `التاريخ: ${date}`);
+        openModal('todayAbsenceReportModal');
+    }
+    function openTotalAbsenceReport() {
+        playSound();
+        const records = allSavedDailyRecords();
+        const dates = Object.keys(records).sort();
+        document.getElementById('totalFromDate').value = dates[0] || todayReportDate();
+        document.getElementById('totalToDate').value = dates[dates.length-1] || todayReportDate();
+        renderTotalAbsenceReport();
+        openModal('totalAbsenceReportModal');
+    }
+    function renderTotalAbsenceReport() {
+        const from=document.getElementById('totalFromDate').value, to=document.getElementById('totalToDate').value;
+        const records=allSavedDailyRecords(); let list=[];
+        Object.keys(records).forEach(date=>{ if ((!from || date>=from) && (!to || date<=to)) list=list.concat(records[date].list||[]); });
+        renderAbsenceHierarchy(list, 'totalAbsenceReportContent', `من ${from || '—'} إلى ${to || '—'}`);
+    }
+
+    function openStudentAbsenceHistory(name) {
+        playSound();
+        const archive = absenceHistoryArchive[name] || { dates: [] };
+        const dates = [...new Set(archive.dates || [])].sort().reverse();
+        const content = document.getElementById('studentAbsenceHistoryContent');
+        content.innerHTML = `<h3 class="v7-history-title">${name}</h3><div class="history-scroll"><table class="history-table"><thead><tr><th>م</th><th>اليوم</th><th>التاريخ</th></tr></thead><tbody>${dates.length ? dates.map((date,i)=>{ const day=new Date(date+'T00:00:00').toLocaleDateString('ar-SA',{weekday:'long'}); return `<tr><td>${i+1}</td><td>${day}</td><td>${date}</td></tr>`; }).join('') : '<tr><td colspan="3">لا توجد أيام غياب محفوظة</td></tr>'}</tbody></table></div>`;
+        openModal('studentAbsenceHistoryModal');
+    }
+
+    function openSavedStats() {
+        playSound();
+        const records = allSavedDailyRecords();
+        const dates = Object.keys(records).sort().reverse();
+        const content = document.getElementById('savedStatsContent');
+        content.innerHTML = `<div class="history-scroll"><table class="history-table"><thead><tr><th>م</th><th>التاريخ</th><th>غياب</th><th></th></tr></thead><tbody>${dates.length ? dates.map((date,i)=>`<tr><td>${i+1}</td><td>${date}</td><td>${(records[date].list||[]).length}</td><td><button class="delete-record-btn" onclick="deleteSavedStat('${date}')">حذف</button></td></tr>`).join('') : '<tr><td colspan="4">لا توجد إحصائيات محفوظة</td></tr>'}</tbody></table></div>`;
+        openModal('savedStatsModal');
+    }
+
+    function deleteSavedStat(date) {
+        const records = allSavedDailyRecords();
+        delete records[date];
+        localStorage.setItem('daily_absence_records_v7', JSON.stringify(records));
+        Object.keys(absenceHistoryArchive).forEach(name => {
+            absenceHistoryArchive[name].dates = (absenceHistoryArchive[name].dates || []).filter(d => d !== date);
+            if (!absenceHistoryArchive[name].dates.length) delete absenceHistoryArchive[name];
+        });
+        localStorage.setItem('absence_history_archive', JSON.stringify(absenceHistoryArchive));
+        autoSaveRepository();
+        updateV7Stats();
+        openSavedStats();
+        toastV7('تم حذف الإحصائية من المستودع');
+    }
+
+    function autoSaveRepository() {
+        const repo = {
+            school: localStorage.getItem('v5_school_name'),
+            guidance: localStorage.getItem('guidance_excel_data'),
+            guidanceName: localStorage.getItem('guidance_file_name'),
+            archive: localStorage.getItem('absence_history_archive'),
+            daily: localStorage.getItem('daily_absence_records_v7'),
+            settings: localStorage.getItem('v7_settings'),
+            sent: localStorage.getItem('sent_message_records'),
+            savedAt: new Date().toISOString()
+        };
+        localStorage.setItem('attendance_repository', JSON.stringify(repo));
+    }
+
+    function sentMessageRecords() { try { return JSON.parse(localStorage.getItem('sent_message_records') || '{}'); } catch(e) { return {}; } }
+    function isMessageSent(name, date) { const r=sentMessageRecords(); return !!r[`${date}|${name}`]; }
+    function saveMessageSent(name, date) { const r=sentMessageRecords(); r[`${date}|${name}`] = { name, date, sentAt:new Date().toISOString() }; localStorage.setItem('sent_message_records', JSON.stringify(r)); autoSaveRepository(); }
+
+    let longPressTimer = null;
+    function startCardLongPress(event, name) {
+        if (event.target.closest('a, button, input, select, textarea')) return;
+        const card = event.currentTarget;
+        if (longPressTimer) clearTimeout(longPressTimer);
+        card.classList.add('long-pressing');
+        longPressTimer = setTimeout(() => {
+            card.classList.remove('long-pressing');
+            openStudentAbsenceHistory(name);
+        }, 750);
+    }
+    function cancelCardLongPress() {
+        if (longPressTimer) clearTimeout(longPressTimer);
+        longPressTimer = null;
+        document.querySelectorAll('.student-card.long-pressing').forEach(card => card.classList.remove('long-pressing'));
+    }
+
+    function renderAbsentList(container, customTemplate, absenceDate) {
+        let html = `<div style="font-weight:800;color:#1e3c72;font-size:16px;margin-top:20px;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">📊 قائمة الطلاب الغائبين (${globalAbsentList.length}):</div><div class="sequential-launch"><button class="sequential-launch-btn" onclick="openSequentialMessages()">📨 إرسال الرسائل بالتتابع</button><button class="send-all-btn" onclick="sendMessagesToAll()">🚀 إرسال رسالة للكل</button></div>`;
+        globalAbsentList.forEach((student, index) => {
+            let msg = customTemplate.replace(/\(اسم الطالب\)/g, student.name).replace(/\(التاريخ\)/g, absenceDate);
+            let waLink = student.phone ? `https://wa.me/${student.phone}?text=${encodeURIComponent(msg)}` : '';
+            const alreadySent = isMessageSent(student.name, absenceDate);
+            html += `<div class="student-card${alreadySent ? ' sent' : ''}" id="card_${index}" onpointerdown="startCardLongPress(event, ${JSON.stringify(student.name)})" onpointerup="cancelCardLongPress()" onpointercancel="cancelCardLongPress()" oncontextmenu="return false">
+                <div class="student-name"><span>${index+1}. ${student.name}</span></div>
+                <div class="student-info student-grade-line">📚 الصف: ${student.grade} &nbsp; • &nbsp; الفصل: ${student.section || 'غير محدد'} <span id="badge_${index}" style="display:${alreadySent ? 'inline-flex' : 'none'}" class="sent-badge">✅ تم الإرسال</span></div>
+                <div class="student-contact-row"><a href="${waLink}" target="_blank" class="wa-btn" onclick="markAsSent(${index})">💬 إرسال واتساب</a><span class="student-phone">📞 ${student.phone ? '0'+student.phone.substring(3) : 'غير متوفر'}</span></div>
+            </div>`;
+        });
+        container.innerHTML=html;
+        updateV5Stats();
+    }
+
+    let sequentialIndex = 0;
+    function openSequentialMessages() { sequentialIndex=0; renderSequentialStudent(); openModal('sequentialMessagesModal'); }
+    function renderSequentialStudent() {
+        const list=globalAbsentList||[], student=list[sequentialIndex], date=document.getElementById('absenceDate')?.value||'';
+        const summary=document.getElementById('sequentialSummary'), current=document.getElementById('sequentialCurrent'), link=document.getElementById('sequentialOpenLink'), next=document.querySelector('.sequential-next-btn');
+        if (!student) { summary.textContent='اكتملت قائمة الرسائل.'; current.innerHTML='<div class="settings-note">لا توجد رسائل متبقية.</div>'; link.style.display='none'; next.style.display='none'; return; }
+        const template=document.getElementById('msgTemplate')?.value||'السلام عليكم ولي أمر الطالب (اسم الطالب)، نود إفادتكم بتغيب ابنكم عن المدرسة ليوم (التاريخ).';
+        const msg=template.replace(/\(اسم الطالب\)/g,student.name).replace(/\(التاريخ\)/g,date);
+        summary.textContent=`الرسالة ${sequentialIndex+1} من أصل ${list.length}`;
+        current.innerHTML=`<strong>${student.name}</strong><span>📚 ${student.grade} — ${student.section||'غير محدد'}<br>📞 ${student.phone ? '0'+student.phone.substring(3) : 'لا يوجد رقم'}</span>`;
+        if(student.phone){ link.href=`https://wa.me/${student.phone}?text=${encodeURIComponent(msg)}`; link.style.display='block'; } else { link.removeAttribute('href'); link.style.display='none'; }
+        next.textContent=sequentialIndex===list.length-1?'إنهاء':'تم الإرسال — التالي';
+    }
+    function nextSequentialStudent() {
+        const list=globalAbsentList||[];
+        if (list[sequentialIndex]) markAsSent(sequentialIndex);
+        if (sequentialIndex < list.length-1) { sequentialIndex++; renderSequentialStudent(); } else { document.getElementById('sequentialSummary').textContent='اكتملت جميع الرسائل.'; document.querySelector('.sequential-next-btn').style.display='none'; toastV7('تمت مراجعة جميع الرسائل'); }
+    }
+    function markAsSent(index) {
+        playSound();
+        const student = globalAbsentList[index];
+        if (student) saveMessageSent(student.name, document.getElementById('absenceDate')?.value || '');
+        setTimeout(() => {
+            const card = document.getElementById(`card_${index}`);
+            const badge = document.getElementById(`badge_${index}`);
+            if (card) card.classList.add('sent');
+            if (badge) badge.style.display = 'inline-flex';
+        }, 300);
+    }
+
+    // ===== إرسال رسالة للكل دفعة واحدة =====
+    function sendMessagesToAll() {
+        playSound();
+        const list = globalAbsentList || [];
+        if (!list.length) { alert('لا يوجد طلاب في القائمة!'); return; }
+
+        const validStudents = list.filter(s => s.phone);
+        if (!validStudents.length) { alert('لا يوجد أرقام جوال متوفرة لأي طالب!'); return; }
+
+        const date = document.getElementById('absenceDate')?.value || '';
+        const template = document.getElementById('msgTemplate')?.value || '';
+
+        if (!confirm(`سيتم فتح ${validStudents.length} محادثة واتساب.\nهل تريد المتابعة؟\n\n⚠️ تأكد من السماح بالنوافذ المنبثقة في المتصفح.`)) return;
+
+        validStudents.forEach((student, i) => {
+            const msg = template.replace(/\(اسم الطالب\)/g, student.name).replace(/\(التاريخ\)/g, date);
+            const url = `https://wa.me/${student.phone}?text=${encodeURIComponent(msg)}`;
+
+            setTimeout(() => {
+                window.open(url, '_blank');
+                const index = list.indexOf(student);
+                if (index !== -1) markAsSent(index);
+                saveMessageSent(student.name, date);
+            }, i * 600);
+        });
+
+        toastV7(`✅ جاري فتح ${validStudents.length} محادثة واتساب...`);
+    }
+
+    function openStudentReportModal() {
+        playSound();
+        const gradeSelect = document.getElementById('reportGrade');
+        gradeSelect.innerHTML = '<option value="">-- اختر المرحلة/الصف --</option>';
+        
+        let grades = [...new Set(Object.values(absenceHistoryArchive).map(s => s.grade))].filter(Boolean);
+        if (grades.length === 0 && cachedJson2) {
+            grades = ['الأول المتوسط', 'الثاني المتوسط', 'الثالث المتوسط'];
+        }
+
+        grades.forEach(g => {
+            let opt = document.createElement('option');
+            opt.value = g;
+            opt.textContent = g;
+            gradeSelect.appendChild(opt);
+        });
+
+        document.getElementById('reportStudentName').innerHTML = '<option value="">-- اختر الطالب بعد تحديد المرحلة --</option>';
+        openModal('studentReportModal');
+    }
+
+    function updateStudentDropdown() {
+        playSound();
+        const selectedGrade = document.getElementById('reportGrade').value;
+        const studentSelect = document.getElementById('reportStudentName');
+        studentSelect.innerHTML = '<option value="">-- اختر اسم الطالب --</option>';
+
+        let studentsInGrade = Object.keys(absenceHistoryArchive).filter(name => absenceHistoryArchive[name].grade === selectedGrade);
+
+        studentsInGrade.forEach(name => {
+            let opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            studentSelect.appendChild(opt);
+        });
+    }
+
+    function generateSingleStudentReport() {
+        playSound();
+        const grade = document.getElementById('reportGrade').value;
+        const studentName = document.getElementById('reportStudentName').value;
+        const resultsDiv = document.getElementById('results');
+
+        if (!grade || !studentName) {
+            alert('الرجاء اختيار المرحلة واسم الطالب بدقة!');
+            return;
+        }
+
+        const studentData = absenceHistoryArchive[studentName];
+        closeModal('studentReportModal');
+
+        if (!studentData || !studentData.dates || studentData.dates.length === 0) {
+            resultsDiv.innerHTML = `<div class="error-box">لا توجد تواريخ غياب مسجلة للطالب: ${studentName}</div>`;
+            return;
+        }
+
+        let html = `
+            <div style="background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border:2px solid #10b981; padding:15px; border-radius:15px; margin-top:20px;">
+                <div style="font-weight:800; color:#065f46; font-size:16px; border-bottom:2px solid #a7f3d0; padding-bottom:8px; margin-bottom:10px;">
+                    📋 سجل غياب الطالب: ${studentName}
+                </div>
+                <div style="font-size:13px; color:#047857; font-weight:700; margin-bottom:10px;">
+                    📁 المرحلة/الصف: ${studentData.grade} | الشعبة: ${studentData.section || 'غير محدد'} | إجمالي أيام الغياب: <span style="background:#059669; color:white; padding:2px 8px; border-radius:6px;">${studentData.dates.length}</span>
+                </div>
+                <div style="font-weight:800; color:#1e3c72; font-size:13px; margin-bottom:5px;">تواريخ الغياب المسجلة:</div>
+                <ul style="margin:0; padding-right:20px; font-size:13px; color:#1f2937; font-weight:600;">
+                    ${studentData.dates.sort().map(d => `<li style="margin-bottom:4px;">📅 ${d}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+        resultsDiv.innerHTML = html;
+    }
+
+    function generatePDFReport() {
+        playSound();
+        if (globalAbsentList.length === 0) {
+            alert('الرجاء استخراج الغائبين أولاً قبل طباعة الكشف!');
+            closeModal('pdfModal');
+            return;
+        }
+
+        const schoolName = document.getElementById('displaySchoolName').innerText;
+        const absenceDate = document.getElementById('absenceDate').value;
+        const scope = document.getElementById('pdfScope').value;
+
+        let filteredList = globalAbsentList;
+        if (scope === 'first_int') {
+            filteredList = globalAbsentList.filter(s => s.grade.includes('الأول'));
+        } else if (scope === 'sec_int') {
+            filteredList = globalAbsentList.filter(s => s.grade.includes('الثاني'));
+        }
+
+        let printWindow = document.createElement('div');
+        printWindow.style.padding = '10px';
+        printWindow.style.fontFamily = 'IBM Plex Sans Arabic, sans-serif';
+        printWindow.innerHTML = `
+            <div style="text-align:center; border-bottom:3px solid #1e3c72; padding-bottom:10px; margin-bottom:15px;">
+                <h2 style="margin:0; color:#1e3c72; font-size:18px;">${schoolName}</h2>
+                <h3 style="margin:4px 0; color:#475569; font-size:15px;">كشف الطلاب الغائبين بدون عذر</h3>
+                <p style="margin:0; font-size:12px; color:#64748b;">تاريخ اليوم: ${absenceDate}</p>
+            </div>
+            <table style="width:100%; border-collapse:collapse; margin-top:5px; font-size:12px;">
+                <thead>
+                    <tr style="background:#1e3c72; color:white;">
+                        <th style="padding:6px; border:1px solid #cbd5e1; width: 40px;">م</th>
+                        <th style="padding:6px; border:1px solid #cbd5e1;">اسم الطالب</th>
+                        <th style="padding:6px; border:1px solid #cbd5e1;">الصف</th>
+                        <th style="padding:6px; border:1px solid #cbd5e1;">الفصل</th>
+                        <th style="padding:6px; border:1px solid #cbd5e1;">رقم ولي الأمر</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${filteredList.map((s, i) => `
+                        <tr>
+                            <td style="padding:5px; border:1px solid #cbd5e1; text-align:center;">${i+1}</td>
+                            <td style="padding:5px; border:1px solid #cbd5e1; font-weight:bold;">${s.name}</td>
+                            <td style="padding:5px; border:1px solid #cbd5e1; text-align:center;">${s.grade}</td>
+                            <td style="padding:5px; border:1px solid #cbd5e1; text-align:center;">${s.section}</td>
+                            <td style="padding:5px; border:1px solid #cbd5e1; text-align:center;">${s.phone ? '0' + s.phone.substring(3) : 'غير متوفر'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+
+        let opt = {
+            margin:       [15, 15, 15, 15],
+            filename:     `كشف_الغياب_${absenceDate}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().from(printWindow).set(opt).save();
+        closeModal('pdfModal');
+    }
+
+    let v5Settings=JSON.parse(localStorage.getItem('v5_settings')||'{"font":16,"sound":"on"}');
+    function updateV5Stats(){let n=globalAbsentList.length;document.getElementById('statAbsent').textContent=n;document.getElementById('statStudents').textContent=n;document.getElementById('statSaved').textContent='0';document.getElementById('statGuidance').textContent=(cachedJson2&&cachedJson2.length)?'✓':'—';document.documentElement.style.setProperty('--student-font',(v5Settings.font||16)+'px');}
+    function saveV5Settings(){v5Settings.font=Math.min(24,Math.max(12,Number(document.getElementById('studentFontSize').value||16)));v5Settings.sound=document.getElementById('soundV5').value;localStorage.setItem('v5_settings',JSON.stringify(v5Settings));toastV5('تم حفظ إعدادات التطبيق');updateV5Stats();}
+    function toastV5(t){let x=document.getElementById('v5Toast');if(!x){x=document.createElement('div');x.id='v5Toast';x.style='position:fixed;bottom:18px;right:18px;background:#1e3c72;color:white;padding:10px 14px;border-radius:10px;z-index:3000;font-size:12px;font-weight:700';document.body.appendChild(x)}x.textContent=t;x.style.display='block';setTimeout(()=>x.style.display='none',2200)}
+    function exportV5Backup(){let data={school:document.getElementById('displaySchoolName').innerText,guidance:localStorage.getItem('guidance_excel_data'),guidanceName:localStorage.getItem('guidance_file_name'),archive:localStorage.getItem('absence_history_archive'),settings:localStorage.getItem('v5_settings')};let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}));a.download='نسخة_احتياطية_الغياب.json';a.click();toastV5('تم تصدير النسخة الاحتياطية')}
+    function importV5Backup(input){let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(d.guidance)localStorage.setItem('guidance_excel_data',d.guidance);if(d.guidanceName)localStorage.setItem('guidance_file_name',d.guidanceName);if(d.archive)localStorage.setItem('absence_history_archive',d.archive);if(d.settings)localStorage.setItem('v5_settings',d.settings);if(d.school)localStorage.setItem('v5_school_name',d.school);location.reload()}catch(e){toastV5('النسخة غير صالحة')}};r.readAsText(input.files[0])}
+    function openReportsV5(){openV7Reports()}
+    function renderDailyV5(){let date=document.getElementById('dailyReportDateV5').value,list=globalAbsentList;document.getElementById('dailyReportV5').innerHTML=`<div style="background:#f3f8ff;border:2px solid #b9d5f5;border-radius:12px;padding:12px;font-weight:800;color:#1e3c72">${document.getElementById('displaySchoolName').innerText}<br>كشف الغياب اليومي — ${date}<hr>${list.length?list.map((s,i)=>`${i+1}. ${s.name} — ${s.grade} — الفصل ${s.section} — ${s.phone?'0'+s.phone.substring(3):'غير متوفر'}`).join('<br>'):'لا توجد بيانات محفوظة لهذا التاريخ'}</div>`}
+    function exportDailyV5(){let el=document.getElementById('dailyReportV5');html2pdf().from(el).set({margin:10,filename:'كشف_غياب_يومي.pdf',html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4'}}).save()}
+    let v7Settings=JSON.parse(localStorage.getItem('v7_settings')||'{"font":17,"weight":900,"sound":"on"}');
+    function allV7Records(){try{return JSON.parse(localStorage.getItem('daily_absence_records_v7')||'{}')||{}}catch(e){localStorage.removeItem('daily_absence_records_v7');return {}}}
+    function updateV7Stats(){let list=globalAbsentList||[];let records=allV7Records();let totalAbsence=Object.values(records).reduce((sum,r)=>sum+(r.list||[]).length,0);document.getElementById('statAbsent').textContent=list.length;document.getElementById('statStudents').textContent=totalAbsence;document.getElementById('statSaved').textContent=Object.keys(allV7Records()).length;document.getElementById('statGuidance').textContent=(cachedJson2&&cachedJson2.length)?'✓':'—';document.documentElement.style.setProperty('--student-font',(v7Settings.font||17)+'px');document.documentElement.style.setProperty('--student-weight',v7Settings.weight||900)}
+    function saveV7Settings(){v7Settings.font=Math.min(26,Math.max(12,Number(document.getElementById('v7Font').value||17)));v7Settings.weight=Number(document.getElementById('v7Weight').value||900);v7Settings.sound=document.getElementById('v7Sound').value;localStorage.setItem('v7_settings',JSON.stringify(v7Settings));autoSaveRepository();updateV7Stats();toastV7('تم حفظ إعدادات التطبيق')}
+    function toastV7(t){let x=document.getElementById('v7Toast');if(!x){x=document.createElement('div');x.id='v7Toast';x.style='position:fixed;bottom:18px;right:18px;background:#1e3c72;color:white;padding:10px 14px;border-radius:10px;z-index:3000;font-size:12px;font-weight:800';document.body.appendChild(x)}x.textContent=t;x.style.display='block';setTimeout(()=>x.style.display='none',2000)}
+    function v7ListFor(date){return allV7Records()[date]?.list||((date===(document.getElementById('absenceDate')?.value||''))?globalAbsentList:[])}
+    function v7Rows(list,title,date){return `<div class="v7-panel print-report" id="v7DailyPrint"><h3 style="text-align:center;margin:0;color:#1e3c72;font-weight:900">${document.getElementById('displaySchoolName').innerText}</h3><div style="text-align:center;font-weight:900;margin:5px 0 12px">${title}<br><span style="font-size:11px">التاريخ: ${date}</span></div><table class="report-print-table"><thead><tr><th class="serial-col">م</th><th>اسم الطالب</th><th>الصف</th><th>الفصل</th><th>جوال ولي الأمر</th></tr></thead><tbody>${list.length?list.map((x,i)=>`<tr><td class="serial-col">${i+1}</td><td class="wrap-cell">${x.name}</td><td class="wrap-cell">${x.grade}</td><td class="wrap-cell">${x.section||'غير محدد'}</td><td class="wrap-cell">${x.phone?'0'+x.phone.substring(3):'غير متوفر'}</td></tr>`).join(''):'<tr><td colspan="5">لا توجد بيانات محفوظة لهذا التاريخ</td></tr>'}</tbody></table></div>`}
+    function showV7Report(t){document.getElementById('v7DailyPane').style.display=t==='daily'?'block':'none';document.getElementById('v7StudentPane').style.display=t==='student'?'block':'none';document.getElementById('v7DailyTab').classList.toggle('active',t==='daily');document.getElementById('v7StudentTab').classList.toggle('active',t==='student');if(t==='daily')renderV7Daily();else renderV7Student()}
+    function openV7Reports(){
+        document.getElementById('v7ReportDate').value=document.getElementById('absenceDate').value;
+        const records=allV7Records();
+        const all=Object.values(records).flatMap(r=>Array.isArray(r.list)?r.list:[]);
+        const grades=[...new Set(all.map(x=>x.grade).filter(Boolean))].sort();
+        document.getElementById('v7Grade').innerHTML='<option value="all">كل المراحل</option>'+grades.map(x=>`<option>${x}</option>`).join('');
+        document.getElementById('v7StudentGrade').innerHTML='<option value="">-- اختر الصف --</option>'+grades.map(x=>`<option>${x}</option>`).join('');
+        document.getElementById('v7StudentSection').innerHTML='<option value="">-- اختر الفصل --</option>';
+        document.getElementById('v7Student').innerHTML='<option value="">-- اختر الطالب --</option>';
+        renderV7Daily();
+        openModal('reportsModalV7');
+    }
+    function updateStudentReportFilters(){
+        const grade=document.getElementById('v7StudentGrade').value;
+        const sectionSelect=document.getElementById('v7StudentSection');
+        const studentSelect=document.getElementById('v7Student');
+        const all=Object.values(allV7Records()).flatMap(r=>Array.isArray(r.list)?r.list:[]);
+        const sections=[...new Set(all.filter(x=>!grade||x.grade===grade).map(x=>x.section).filter(Boolean))].sort();
+        sectionSelect.innerHTML='<option value="">-- اختر الفصل --</option>'+sections.map(x=>`<option>${x}</option>`).join('');
+        studentSelect.innerHTML='<option value="">-- اختر الطالب --</option>';
+        document.getElementById('v7StudentPreview').innerHTML='';
+        updateStudentReportStudents();
+    }
+    function updateStudentReportStudents(){
+        const grade=document.getElementById('v7StudentGrade').value;
+        const section=document.getElementById('v7StudentSection').value;
+        const all=Object.values(allV7Records()).flatMap(r=>Array.isArray(r.list)?r.list:[]);
+        const names=[...new Set(all.filter(x=>(!grade||x.grade===grade)&&(!section||x.section===section)).map(x=>x.name).filter(Boolean))].sort();
+        document.getElementById('v7Student').innerHTML='<option value="">-- اختر الطالب --</option>'+names.map(x=>`<option>${x}</option>`).join('');
+        document.getElementById('v7StudentPreview').innerHTML='';
+    }
+
+    function renderV7Daily(){let date=document.getElementById('v7ReportDate').value,scope=document.getElementById('v7Scope').value,g=document.getElementById('v7Grade').value,s=document.getElementById('v7Section').value;document.getElementById('v7GradeWrap').style.display=scope==='all'?'none':'block';document.getElementById('v7SectionWrap').style.display=scope==='section'?'block':'none';let list=v7ListFor(date);if(scope!=='all')list=list.filter(x=>!g||g==='all'||x.grade===g);if(scope==='section')list=list.filter(x=>!s||s==='all'||x.section===s);document.getElementById('v7DailyPreview').innerHTML=v7Rows(list,'كشف الغياب اليومي',date);let sections=[...new Set(v7ListFor(date).map(x=>x.section))];document.getElementById('v7Section').innerHTML='<option value="all">كل الفصول</option>'+sections.map(x=>`<option>${x}</option>`).join('')}
+    function renderV7Student(){
+        const name=document.getElementById('v7Student').value;
+        const selectedGrade=document.getElementById('v7StudentGrade').value;
+        const selectedSection=document.getElementById('v7StudentSection').value;
+        const target=document.getElementById('v7StudentPreview');
+        if (!name) { target.innerHTML='<div class="settings-note report-empty-state">اختر اسم طالب لعرض كشفه الخاص.</div>'; return; }
+        const records=allV7Records(); let rows=[];
+        Object.keys(records).sort().forEach(date=>{
+            const dayList=Array.isArray(records[date]?.list) ? records[date].list : [];
+            dayList.filter(x=>x && x.name===name && (!selectedGrade || x.grade===selectedGrade) && (!selectedSection || x.section===selectedSection)).forEach(x=>rows.push({...x,date,status:'غائب'}));
+        });
+        rows.sort((a,b)=>a.date.localeCompare(b.date));
+        const archive=absenceHistoryArchive[name] || {};
+        const selected=rows[0] || archive;
+        const grade=selected.grade || archive.grade || 'غير محدد';
+        const section=selected.section || archive.section || 'غير محدد';
+        const html=`<div class="v7-panel print-report student-report-print" id="v7StudentPrint"><div class="student-report-heading"><h3>كشف غياب الطالب</h3><div class="student-report-name">${name}</div><div class="student-report-meta">الصف: ${grade} &nbsp; | &nbsp; الفصل: ${section}</div></div><table class="report-print-table student-history-print"><thead><tr><th class="serial-col">م</th><th>اليوم</th><th>التاريخ</th><th>ملاحظات</th></tr></thead><tbody>${rows.length?rows.map((x,i)=>{const day=new Date(x.date+'T00:00:00').toLocaleDateString('ar-SA',{weekday:'long'});return `<tr><td class="serial-col">${i+1}</td><td>${day}</td><td>${x.date}</td><td></td></tr>`}).join(''):'<tr><td colspan="4">لا توجد سجلات غياب لهذا الطالب</td></tr>'}</tbody></table></div>`;
+        target.innerHTML=html;
+    }
+
+    function exportV7PDF(id,name){const el=document.getElementById(id);if(!el){toastV7('اختر البيانات أولاً لعرض التقرير');return;}el.classList.add('pdf-export-mode');html2pdf().from(el).set({margin:[8,8,8,8],filename:name+'.pdf',image:{type:'jpeg',quality:.96},html2canvas:{scale:1.5,useCORS:true,scrollX:0,scrollY:0},pagebreak:{mode:['css','legacy'],avoid:'.report-print tr'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).save().finally(()=>el.classList.remove('pdf-export-mode'))}
+    function exportV7DailyPDF(){exportV7PDF('v7DailyPrint','كشف_غياب_يومي_'+document.getElementById('v7ReportDate').value)}function exportV7StudentPDF(){exportV7PDF('v7StudentPrint','كشف_غياب_طالب')}
+    function exportV7Backup(){let d={guidance:localStorage.getItem('guidance_excel_data'),guidanceName:localStorage.getItem('guidance_file_name'),archive:localStorage.getItem('absence_history_archive'),daily:localStorage.getItem('daily_absence_records_v7'),settings:localStorage.getItem('v7_settings')};let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download='نسخة_احتياطية_الغياب.json';a.click();toastV7('تم تصدير النسخة الاحتياطية')}
+    function importV7Backup(i){let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(d.guidance)localStorage.setItem('guidance_excel_data',d.guidance);if(d.guidanceName)localStorage.setItem('guidance_file_name',d.guidanceName);if(d.archive)localStorage.setItem('absence_history_archive',d.archive);if(d.daily)localStorage.setItem('daily_absence_records_v7',d.daily);if(d.settings)localStorage.setItem('v7_settings',d.settings);location.reload()}catch(e){toastV7('النسخة غير صالحة')}};r.readAsText(i.files[0])}
+    function resetAllV9(){['guidance_excel_data','guidance_file_name','absence_history_archive','daily_absence_records_v7','v7_settings','v5_settings','v5_school_name'].forEach(k=>localStorage.removeItem(k));location.reload()}
+    function readExcel(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    resolve(workbook);
+                } catch (err) { reject(err); }
+            };
+            reader.onerror = (err) => reject(err);
+            reader.readAsArrayBuffer(file);
+        });
+    }
+</script>
+
+</body>
+</html>
+
