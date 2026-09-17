@@ -674,6 +674,8 @@
         .student-history-print th:nth-child(3), .student-history-print td:nth-child(3) { width:25%; }
         .student-history-print th:nth-child(4), .student-history-print td:nth-child(4) { width:38%; }
         @media print { .report-print { width:100%; } .report-print-table thead { display:table-header-group; } }
+
+        .report-empty-state { padding:18px; text-align:center; background:#f5f8fc; border:1px solid #d7e2ee; border-radius:10px; font-weight:800; color:#526b84; }
 </style>
 </head>
 <body>
@@ -689,7 +691,7 @@
     </div>
 
     <h2>نظام متابعة الغياب الذكي</h2>
-    <div class="app-version" aria-label="إصدار التطبيق">v1.4</div>
+    <div class="app-version" aria-label="إصدار التطبيق">v1.6</div>
 
     <section class="main-frame">
         <div class="stats-strip">
@@ -1426,7 +1428,7 @@
     function toastV5(t){let x=document.getElementById('v5Toast');if(!x){x=document.createElement('div');x.id='v5Toast';x.style='position:fixed;bottom:18px;right:18px;background:#1e3c72;color:white;padding:10px 14px;border-radius:10px;z-index:3000;font-size:12px;font-weight:700';document.body.appendChild(x)}x.textContent=t;x.style.display='block';setTimeout(()=>x.style.display='none',2200)}
     function exportV5Backup(){let data={school:document.getElementById('displaySchoolName').innerText,guidance:localStorage.getItem('guidance_excel_data'),guidanceName:localStorage.getItem('guidance_file_name'),archive:localStorage.getItem('absence_history_archive'),settings:localStorage.getItem('v5_settings')};let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}));a.download='نسخة_احتياطية_الغياب.json';a.click();toastV5('تم تصدير النسخة الاحتياطية')}
     function importV5Backup(input){let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(d.guidance)localStorage.setItem('guidance_excel_data',d.guidance);if(d.guidanceName)localStorage.setItem('guidance_file_name',d.guidanceName);if(d.archive)localStorage.setItem('absence_history_archive',d.archive);if(d.settings)localStorage.setItem('v5_settings',d.settings);if(d.school)localStorage.setItem('v5_school_name',d.school);location.reload()}catch(e){toastV5('النسخة غير صالحة')}};r.readAsText(input.files[0])}
-    function openReportsV5(){document.getElementById('dailyReportDateV5').value=document.getElementById('absenceDate').value;renderDailyV5();openModal('reportsModalV5')}
+    function openReportsV5(){openV7Reports()}
     function renderDailyV5(){let date=document.getElementById('dailyReportDateV5').value,list=globalAbsentList;document.getElementById('dailyReportV5').innerHTML=`<div style="background:#f3f8ff;border:2px solid #b9d5f5;border-radius:12px;padding:12px;font-weight:800;color:#1e3c72">${document.getElementById('displaySchoolName').innerText}<br>كشف الغياب اليومي — ${date}<hr>${list.length?list.map((s,i)=>`${i+1}. ${s.name} — ${s.grade} — الفصل ${s.section} — ${s.phone?'0'+s.phone.substring(3):'غير متوفر'}`).join('<br>'):'لا توجد بيانات محفوظة لهذا التاريخ'}</div>`}
     function exportDailyV5(){let el=document.getElementById('dailyReportV5');html2pdf().from(el).set({margin:10,filename:'كشف_غياب_يومي.pdf',html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4'}}).save()}
     let v7Settings=JSON.parse(localStorage.getItem('v7_settings')||'{"font":17,"weight":900,"sound":"on"}');
@@ -1435,23 +1437,31 @@
     function saveV7Settings(){v7Settings.font=Math.min(26,Math.max(12,Number(document.getElementById('v7Font').value||17)));v7Settings.weight=Number(document.getElementById('v7Weight').value||900);v7Settings.sound=document.getElementById('v7Sound').value;localStorage.setItem('v7_settings',JSON.stringify(v7Settings));autoSaveRepository();updateV7Stats();toastV7('تم حفظ إعدادات التطبيق')}
     function toastV7(t){let x=document.getElementById('v7Toast');if(!x){x=document.createElement('div');x.id='v7Toast';x.style='position:fixed;bottom:18px;right:18px;background:#1e3c72;color:white;padding:10px 14px;border-radius:10px;z-index:3000;font-size:12px;font-weight:800';document.body.appendChild(x)}x.textContent=t;x.style.display='block';setTimeout(()=>x.style.display='none',2000)}
     function v7ListFor(date){return allV7Records()[date]?.list||((date===(document.getElementById('absenceDate')?.value||''))?globalAbsentList:[])}
-    function v7Rows(list,title,date){return `<div class="v7-panel print-report" id="v7Print"><h3 style="text-align:center;margin:0;color:#1e3c72;font-weight:900">${document.getElementById('displaySchoolName').innerText}</h3><div style="text-align:center;font-weight:900;margin:5px 0 12px">${title}<br><span style="font-size:11px">التاريخ: ${date}</span></div><table class="report-print-table"><thead><tr><th class="serial-col">م</th><th>اسم الطالب</th><th>الصف</th><th>الفصل</th><th>جوال ولي الأمر</th></tr></thead><tbody>${list.length?list.map((x,i)=>`<tr><td class="serial-col">${i+1}</td><td class="wrap-cell">${x.name}</td><td class="wrap-cell">${x.grade}</td><td class="wrap-cell">${x.section||'غير محدد'}</td><td class="wrap-cell">${x.phone?'0'+x.phone.substring(3):'غير متوفر'}</td></tr>`).join(''):'<tr><td colspan="5">لا توجد بيانات محفوظة لهذا التاريخ</td></tr>'}</tbody></table></div>`}
+    function v7Rows(list,title,date){return `<div class="v7-panel print-report" id="v7DailyPrint"><h3 style="text-align:center;margin:0;color:#1e3c72;font-weight:900">${document.getElementById('displaySchoolName').innerText}</h3><div style="text-align:center;font-weight:900;margin:5px 0 12px">${title}<br><span style="font-size:11px">التاريخ: ${date}</span></div><table class="report-print-table"><thead><tr><th class="serial-col">م</th><th>اسم الطالب</th><th>الصف</th><th>الفصل</th><th>جوال ولي الأمر</th></tr></thead><tbody>${list.length?list.map((x,i)=>`<tr><td class="serial-col">${i+1}</td><td class="wrap-cell">${x.name}</td><td class="wrap-cell">${x.grade}</td><td class="wrap-cell">${x.section||'غير محدد'}</td><td class="wrap-cell">${x.phone?'0'+x.phone.substring(3):'غير متوفر'}</td></tr>`).join(''):'<tr><td colspan="5">لا توجد بيانات محفوظة لهذا التاريخ</td></tr>'}</tbody></table></div>`}
     function showV7Report(t){document.getElementById('v7DailyPane').style.display=t==='daily'?'block':'none';document.getElementById('v7StudentPane').style.display=t==='student'?'block':'none';document.getElementById('v7DailyTab').classList.toggle('active',t==='daily');document.getElementById('v7StudentTab').classList.toggle('active',t==='student');if(t==='daily')renderV7Daily();else renderV7Student()}
-    function openV7Reports(){document.getElementById('v7ReportDate').value=document.getElementById('absenceDate').value;let records=allV7Records();let dates=Object.keys(records);if(!records[document.getElementById('absenceDate').value]&&globalAbsentList.length){}let grades=[...new Set(Object.values(records).flatMap(r=>r.list.map(x=>x.grade)))];document.getElementById('v7Grade').innerHTML='<option value="all">كل المراحل</option>'+grades.map(x=>`<option>${x}</option>`).join('');let names=[...new Set(Object.values(records).flatMap(r=>r.list.map(x=>x.name)))];document.getElementById('v7Student').innerHTML='<option value="all">كل الطلاب</option>'+names.map(x=>`<option>${x}</option>`).join('');renderV7Daily();openModal('reportsModalV7')}
+    function openV7Reports(){document.getElementById('v7ReportDate').value=document.getElementById('absenceDate').value;let records=allV7Records();let dates=Object.keys(records);if(!records[document.getElementById('absenceDate').value]&&globalAbsentList.length){}let grades=[...new Set(Object.values(records).flatMap(r=>r.list.map(x=>x.grade)))];document.getElementById('v7Grade').innerHTML='<option value="all">كل المراحل</option>'+grades.map(x=>`<option>${x}</option>`).join('');let names=[...new Set(Object.values(records).flatMap(r=>r.list.map(x=>x.name)))];document.getElementById('v7Student').innerHTML='<option value="">-- اختر الطالب --</option>'+names.map(x=>`<option>${x}</option>`).join('');renderV7Daily();openModal('reportsModalV7')}
     function renderV7Daily(){let date=document.getElementById('v7ReportDate').value,scope=document.getElementById('v7Scope').value,g=document.getElementById('v7Grade').value,s=document.getElementById('v7Section').value;document.getElementById('v7GradeWrap').style.display=scope==='all'?'none':'block';document.getElementById('v7SectionWrap').style.display=scope==='section'?'block':'none';let list=v7ListFor(date);if(scope!=='all')list=list.filter(x=>!g||g==='all'||x.grade===g);if(scope==='section')list=list.filter(x=>!s||s==='all'||x.section===s);document.getElementById('v7DailyPreview').innerHTML=v7Rows(list,'كشف الغياب اليومي',date);let sections=[...new Set(v7ListFor(date).map(x=>x.section))];document.getElementById('v7Section').innerHTML='<option value="all">كل الفصول</option>'+sections.map(x=>`<option>${x}</option>`).join('')}
     function renderV7Student(){
-        let name=document.getElementById('v7Student').value;
-        let records=allV7Records(); let rows=[];
-        Object.keys(records).sort().forEach(date=>{(records[date].list||[]).filter(x=>name==='all'||x.name===name).forEach(x=>rows.push({...x,date,status:'غائب'}));});
-        let selected=rows[0] || (name!=='all' ? (absenceHistoryArchive[name] || {}) : {});
-        let names=name==='all'?'جميع الطلاب':name;
-        let grade=selected.grade || 'غير محدد', section=selected.section || 'غير محدد';
-        let html=`<div class="v7-panel print-report student-report-print" id="v7Print"><div class="student-report-heading"><h3>كشف غياب الطالب</h3><div class="student-report-name">${names}</div><div class="student-report-meta">الصف: ${grade} &nbsp; | &nbsp; الفصل: ${section}</div></div><table class="report-print-table student-history-print"><thead><tr><th class="serial-col">م</th><th>اليوم</th><th>التاريخ</th><th>ملاحظات</th></tr></thead><tbody>${rows.length?rows.map((x,i)=>{let day=new Date(x.date+'T00:00:00').toLocaleDateString('ar-SA',{weekday:'long'});return `<tr><td class="serial-col">${i+1}</td><td>${day}</td><td>${x.date}</td><td></td></tr>`}).join(''):'<tr><td colspan="4">لا توجد سجلات غياب محفوظة</td></tr>'}</tbody></table></div>`;
-        document.getElementById('v7StudentPreview').innerHTML=html;
+        const name=document.getElementById('v7Student').value;
+        const target=document.getElementById('v7StudentPreview');
+        if (!name) { target.innerHTML='<div class="settings-note report-empty-state">اختر اسم طالب لعرض كشفه الخاص.</div>'; return; }
+        const records=allV7Records(); let rows=[];
+        // مصدر الأيام الوحيد هو سجل الغياب اليومي المعتمد، وليس أرشيف الأسماء القديم.
+        Object.keys(records).sort().forEach(date=>{
+            const dayList=Array.isArray(records[date]?.list) ? records[date].list : [];
+            dayList.filter(x=>x && x.name===name).forEach(x=>rows.push({...x,date,status:'غائب'}));
+        });
+        rows.sort((a,b)=>a.date.localeCompare(b.date));
+        const archive=absenceHistoryArchive[name] || {};
+        const selected=rows[0] || archive;
+        const grade=selected.grade || archive.grade || 'غير محدد';
+        const section=selected.section || archive.section || 'غير محدد';
+        const html=`<div class="v7-panel print-report student-report-print" id="v7StudentPrint"><div class="student-report-heading"><h3>كشف غياب الطالب</h3><div class="student-report-name">${name}</div><div class="student-report-meta">الصف: ${grade} &nbsp; | &nbsp; الفصل: ${section}</div></div><table class="report-print-table student-history-print"><thead><tr><th class="serial-col">م</th><th>اليوم</th><th>التاريخ</th><th>ملاحظات</th></tr></thead><tbody>${rows.length?rows.map((x,i)=>{const day=new Date(x.date+'T00:00:00').toLocaleDateString('ar-SA',{weekday:'long'});return `<tr><td class="serial-col">${i+1}</td><td>${day}</td><td>${x.date}</td><td></td></tr>`}).join(''):'<tr><td colspan="4">لا توجد سجلات غياب لهذا الطالب</td></tr>'}</tbody></table></div>`;
+        target.innerHTML=html;
     }
 
     function exportV7PDF(id,name){html2pdf().from(document.getElementById(id)).set({margin:10,filename:name+'.pdf',html2canvas:{scale:2, letterRendering:true}, pagebreak:{mode:['css','legacy'], avoid:'.report-print tr'}, jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).save()}
-    function exportV7DailyPDF(){exportV7PDF('v7Print','كشف_غياب_يومي_'+document.getElementById('v7ReportDate').value)}function exportV7StudentPDF(){exportV7PDF('v7Print','كشف_غياب_طالب')}
+    function exportV7DailyPDF(){exportV7PDF('v7DailyPrint','كشف_غياب_يومي_'+document.getElementById('v7ReportDate').value)}function exportV7StudentPDF(){exportV7PDF('v7StudentPrint','كشف_غياب_طالب')}
     function exportV7Backup(){let d={guidance:localStorage.getItem('guidance_excel_data'),guidanceName:localStorage.getItem('guidance_file_name'),archive:localStorage.getItem('absence_history_archive'),daily:localStorage.getItem('daily_absence_records_v7'),settings:localStorage.getItem('v7_settings')};let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download='نسخة_احتياطية_الغياب.json';a.click();toastV7('تم تصدير النسخة الاحتياطية')}
     function importV7Backup(i){let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(d.guidance)localStorage.setItem('guidance_excel_data',d.guidance);if(d.guidanceName)localStorage.setItem('guidance_file_name',d.guidanceName);if(d.archive)localStorage.setItem('absence_history_archive',d.archive);if(d.daily)localStorage.setItem('daily_absence_records_v7',d.daily);if(d.settings)localStorage.setItem('v7_settings',d.settings);location.reload()}catch(e){toastV7('النسخة غير صالحة')}};r.readAsText(i.files[0])}
     function resetAllV9(){['guidance_excel_data','guidance_file_name','absence_history_archive','daily_absence_records_v7','v7_settings','v5_settings','v5_school_name'].forEach(k=>localStorage.removeItem(k));location.reload()}
