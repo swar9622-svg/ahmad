@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إرسال رسائل الغياب للواتساب</title>
+    <!-- مكتبة قراءة ملفات الإكسل SheetJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: Tahoma, sans-serif; background: #f4f7f6; padding: 15px; margin: 0; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #075e54; font-size: 20px; }
+        .upload-section { margin-bottom: 15px; background: #f9f9f9; padding: 10px; border-radius: 6px; border: 1px dashed #ccc; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input[type="file"] { width: 100%; font-size: 13px; }
+        button { background: #25d366; color: white; border: none; padding: 10px 15px; width: 100%; font-size: 16px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        button:hover { background: #1ebe5d; }
+        .student-card { background: #fff; border: 1px solid #e0e0e0; border-right: 5px solid #25d366; padding: 12px; margin-top: 10px; border-radius: 5px; }
+        .student-name { font-weight: bold; color: #333; font-size: 15px; }
+        .student-info { font-size: 13px; color: #666; margin: 5px 0; }
+        .wa-btn { display: inline-block; background: #25d366; color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; margin-top: 5px; text-align: center; width: 100%; box-sizing: border-box; }
+        .wa-btn:hover { background: #128c7e; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2> نظام متابعة الغياب للواتساب</h2>
+    
+    <div class="upload-section">
+        <label>1. ملف إحصائية الغياب (GetStatisticalViolationeStudnt):</label>
+        <input type="file" id="file1" accept=".xlsx, .xls">
+    </div>
+
+    <div class="upload-section">
+        <label>2. ملف بيانات الإرشاد وأرقام الجوالات:</label>
+        <input type="file" id="file2" accept=".xlsx, .xls">
+    </div>
+
+    <button onclick="processFiles()">استخراج الغائبين وتجهيز الرسائل</button>
+
+    <div id="results" style="margin-top: 20px;"></div>
+</div>
+
+<script>
+async function processFiles() {
+    const f1Input = document.getElementById('file1').files[0];
+    const f2Input = document.getElementById('file2').files[0];
+    const resultsDiv = document.getElementById('results');
+
+    if (!f1Input || !f2Input) {
+        alert('الرجاء اختيار الملفين معاً!');
+        return;
+    }
+
+    try {
+        const data1 = await readExcel(f1Input);
+        const data2 = await readExcel(f2Input);
+
+        // تحليل ملف الغياب (الملف الأول) - بافتراض الصف 8 هو العنوان بناءً على هيكلة ملفك
+        const sheet1 = data1.Sheets[data1.SheetNames[0]];
+        const json1 = XLSX.utils.sheet_to_json(sheet1, { range: 8 });
+
+        // تحليل ملف الإرشاد (الملف الثاني) - بافتراض الصف 3 هو العنوان
+        const sheet2 = data2.Sheets[data2.SheetNames['Sheet2'] || data2.SheetNames[0]];
+        const json2 = XLSX.utils.sheet_to_json(sheet2, { range: 3 });
+
+        // تصفية الطلاب الغائبين (غياب بدون عذر > 0)
+        let absentList = [];
+        json1.forEach(row => {
+            let name = row['الاســـم'] ? row['الاســـم'].trim() : '';
+            let absenceVal = parseInt(row['غياب بدون عذر'] || 0);
+            
+            if (name && absenceVal > 0) {
+                // البحث عن رقم الجوال في الملف الثاني
+                let matchedStudent = json2.find(s => s['اسم الطالب'] && s['اسم الطالب'].trim() === name);
+                let phone = matchedStudent && matchedStudent['الجوال'] ? String(matchedStudent['الجوال']).trim() : '';
+                
+                // تنظيف رقم الهاتف وإضافة رمز الدولة إذا لزم
+                if (phone.startsWith('05')) {
+                    phone = '966' + phone.substring(1);
+                }
+
+                absentList.push({
+                    name: name,
+                    class: row['الصف'] || '',
+                    section: row['الفصل'] || '',
+                    phone: phone
+                });
+            }
+        });
+
+        if (absentList.length === 0) {
+            resultsDiv.innerHTML = '<p style="text-align:center; color:green;">لا يوجد طلاب غائبين بدون عذر اليوم أو أن أسماء الأعمدة بحاجة لمطابقة دقيقة.</p>';
+            return;
+        }
+
+        let html = `<h3 style="color:#333; font-size:16px;">الطلاب الغائبين (${absentList.length}):</h3>`;
+        absentList.forEach((student, index) => {
+            let msg = `السلام عليكم ولي أمر الطالب (${student.name})، نود إفادتكم بتغيب ابنكم عن المدرسة اليوم، ونتمنى حضور واهتمام الجميع. شكراً لكم.`;
+            let encodedMsg = encodeURIComponent(msg);
+            let waLink = student.phone ? `https://wa.me/${student.phone}?text=${encodedMsg}` : `#`;
+
+            html += `
+                <div class="student-card">
+                    <div class="student-name">${index + 1}. ${student.name}</div>
+                    <div class="student-info">الصف: ${student.class} | الفصل: ${student.section}</div>
+                    <div class="student-info">رقم الجوال: ${student.phone || 'غير متوفر'}</div>
+                    ${student.phone ? `<a href="${waLink}" target="_blank" class="wa-btn">💬 إرسال رسالة واتساب</a>` : '<span style="color:red; font-size:12px;">رقم الجوال غير متاح</span>'}
+                </div>
+            `;
+        });
+
+        resultsDiv.innerHTML = html;
+
+    } catch (error) {
+        console.error(error);
+        حدث خطأ أثناء قراءة الملفات. تأكد من تطابق الصيغ.
+    }
+}
+
+function readExcel(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            resolve(workbook);
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+    });
+}
+</script>
+
+</body>
+</html>
