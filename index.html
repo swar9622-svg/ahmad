@@ -920,7 +920,7 @@
                     // محاولة إضافية عند اختلاف تنسيق الرقم أو استخدام أرقام عربية، مع إبقاء المطابقة الأصلية أولاً
                     if (!foundPhone) {
                         const toLatin = v => String(v ?? '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-                        const normalizeName = v => toLatin(v).replace(/[ًٌٍَُِّْـ]/g, '').replace(/[إأآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '').toLowerCase();
+                        const normalizeName = v => toLatin(v).replace(/[ًٌٍَُِّْـ]/g, '').replace(/[إأآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '').toLowerCase();
                         const targetName = normalizeName(name);
                         for (let s of cachedJson2) {
                             const values = Object.values(s).map(v => String(v ?? '').trim()).filter(Boolean);
