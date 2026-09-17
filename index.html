@@ -581,6 +581,17 @@
         #filesModal #s1 { display:block; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:10px !important; }
         #filesModal .status-pill { font-size:10px; padding:3px 6px; }
         #filesModal .full-action-btn { min-height:40px !important; padding:8px !important; font-size:13px !important; }
+
+        .student-card { min-height:70px !important; padding:8px 48px 8px 52px !important; margin-top:7px !important; }
+        .student-name { font-size:15px !important; line-height:20px !important; padding:0 !important; text-align:right !important; white-space:nowrap; }
+        .student-info { font-size:11px !important; margin:1px 0 !important; }
+        .student-contact-row { margin-top:3px !important; gap:9px !important; flex-wrap:nowrap !important; justify-content:flex-start !important; }
+        .student-contact-row .wa-btn { padding:5px 9px !important; font-size:11px !important; }
+        .student-contact-row .student-phone { font-size:10px !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .absence-badge { width:29px !important; height:29px !important; font-size:13px !important; left:10px !important; right:auto !important; top:50% !important; }
+        .history-table th:nth-child(2), .history-table td:nth-child(2) { width:48%; }
+        .history-table th:nth-child(3), .history-table td:nth-child(3) { width:25%; }
+        .history-table th:nth-child(4), .history-table td:nth-child(4) { width:42px; }
 </style>
 </head>
 <body>
@@ -596,7 +607,7 @@
     </div>
 
     <h2>نظام متابعة الغياب الذكي</h2>
-    <div class="app-version" aria-label="إصدار التطبيق">v1.1.0</div>
+    <div class="app-version" aria-label="إصدار التطبيق">v1.1.1</div>
 
     <section class="main-frame">
         <div class="stats-strip">
@@ -827,7 +838,7 @@
 
     let cachedJson2 = null;
     // تخزين الأرشيف التاريخي للغياب (بحيث يتم تجميع كل ملف يتم إرفاقه لسجل الطالب)
-    let absenceHistoryArchive = JSON.parse(localStorage.getItem('absence_history_archive') || '{}');
+    let absenceHistoryArchive = {}; try { absenceHistoryArchive = JSON.parse(localStorage.getItem('absence_history_archive') || '{}') || {}; } catch(e) { localStorage.removeItem('absence_history_archive'); absenceHistoryArchive = {}; }
 
     function checkStoredGuidanceData() {
         const savedData = localStorage.getItem('guidance_excel_data');
@@ -917,7 +928,9 @@
 
         try {
             const data1 = await readExcel(f1Input);
+            if (!data1 || !data1.SheetNames || !data1.SheetNames.length) throw new Error('تعذر قراءة ورقة البيانات من الملف');
             const sheet1 = data1.Sheets[data1.SheetNames[0]];
+            if (!sheet1) throw new Error('ورقة البيانات غير موجودة في الملف');
             const json1 = XLSX.utils.sheet_to_json(sheet1, { range: 8 });
 
             globalAbsentList = [];
@@ -1017,7 +1030,8 @@
 
         } catch (error) {
             console.error(error);
-            resultsDiv.innerHTML = `<div class="error-box">حدث خطأ أثناء معالجة الملف:<br>${error.message}</div>`;
+            const safeMessage = error && (error.message || error.toString()) ? (error.message || error.toString()) : 'تعذر قراءة الملف. تأكد من أنه ملف Excel صحيح.';
+            resultsDiv.innerHTML = `<div class="error-box">حدث خطأ أثناء معالجة الملف:<br>${safeMessage}</div>`;
         }
     }
 
@@ -1085,7 +1099,7 @@
         const records = allSavedDailyRecords();
         const dates = Object.keys(records).sort().reverse();
         const content = document.getElementById('savedStatsContent');
-        content.innerHTML = `<div class="history-scroll"><table class="history-table"><thead><tr><th>م</th><th>التاريخ</th><th>عدد الغائبين</th><th>حذف</th></tr></thead><tbody>${dates.length ? dates.map((date,i)=>`<tr><td>${i+1}</td><td>${date}</td><td>${(records[date].list||[]).length}</td><td><button class="delete-record-btn" onclick="deleteSavedStat('${date}')">حذف</button></td></tr>`).join('') : '<tr><td colspan="4">لا توجد إحصائيات محفوظة</td></tr>'}</tbody></table></div>`;
+        content.innerHTML = `<div class="history-scroll"><table class="history-table"><thead><tr><th>م</th><th>التاريخ</th><th>غياب</th><th></th></tr></thead><tbody>${dates.length ? dates.map((date,i)=>`<tr><td>${i+1}</td><td>${date}</td><td>${(records[date].list||[]).length}</td><td><button class="delete-record-btn" onclick="deleteSavedStat('${date}')">حذف</button></td></tr>`).join('') : '<tr><td colspan="4">لا توجد إحصائيات محفوظة</td></tr>'}</tbody></table></div>`;
         openModal('savedStatsModal');
     }
 
@@ -1319,7 +1333,7 @@
     function renderDailyV5(){let date=document.getElementById('dailyReportDateV5').value,list=globalAbsentList;document.getElementById('dailyReportV5').innerHTML=`<div style="background:#f3f8ff;border:2px solid #b9d5f5;border-radius:12px;padding:12px;font-weight:800;color:#1e3c72">${document.getElementById('displaySchoolName').innerText}<br>كشف الغياب اليومي — ${date}<hr>${list.length?list.map((s,i)=>`${i+1}. ${s.name} — ${s.grade} — الفصل ${s.section} — ${s.phone?'0'+s.phone.substring(3):'غير متوفر'}`).join('<br>'):'لا توجد بيانات محفوظة لهذا التاريخ'}</div>`}
     function exportDailyV5(){let el=document.getElementById('dailyReportV5');html2pdf().from(el).set({margin:10,filename:'كشف_غياب_يومي.pdf',html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4'}}).save()}
     let v7Settings=JSON.parse(localStorage.getItem('v7_settings')||'{"font":17,"weight":900,"sound":"on"}');
-    function allV7Records(){return JSON.parse(localStorage.getItem('daily_absence_records_v7')||'{}')}
+    function allV7Records(){try{return JSON.parse(localStorage.getItem('daily_absence_records_v7')||'{}')||{}}catch(e){localStorage.removeItem('daily_absence_records_v7');return {}}}
     function updateV7Stats(){let list=globalAbsentList||[];let records=allV7Records();let totalAbsence=Object.values(records).reduce((sum,r)=>sum+(r.list||[]).length,0);document.getElementById('statAbsent').textContent=list.length;document.getElementById('statStudents').textContent=totalAbsence;document.getElementById('statSaved').textContent=Object.keys(allV7Records()).length;document.getElementById('statGuidance').textContent=(cachedJson2&&cachedJson2.length)?'✓':'—';document.documentElement.style.setProperty('--student-font',(v7Settings.font||17)+'px');document.documentElement.style.setProperty('--student-weight',v7Settings.weight||900)}
     function saveV7Settings(){v7Settings.font=Math.min(26,Math.max(12,Number(document.getElementById('v7Font').value||17)));v7Settings.weight=Number(document.getElementById('v7Weight').value||900);v7Settings.sound=document.getElementById('v7Sound').value;localStorage.setItem('v7_settings',JSON.stringify(v7Settings));autoSaveRepository();updateV7Stats();toastV7('تم حفظ إعدادات التطبيق')}
     function toastV7(t){let x=document.getElementById('v7Toast');if(!x){x=document.createElement('div');x.id='v7Toast';x.style='position:fixed;bottom:18px;right:18px;background:#1e3c72;color:white;padding:10px 14px;border-radius:10px;z-index:3000;font-size:12px;font-weight:800';document.body.appendChild(x)}x.textContent=t;x.style.display='block';setTimeout(()=>x.style.display='none',2000)}
