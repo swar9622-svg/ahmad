@@ -9,53 +9,71 @@
             font-family: Tahoma, Arial, sans-serif;
             background-color: #f4f4f9;
             text-align: center;
-            padding: 50px;
+            padding: 40px 20px;
             color: #333;
         }
         .container {
             background: #fff;
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             max-width: 400px;
             margin: auto;
         }
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            font-size: 15px;
+            line-height: 1.6;
+        }
         .btn {
-            display: inline-block;
+            display: block;
+            width: 100%;
             background-color: #007bff;
             color: white;
-            padding: 12px 25px;
+            padding: 14px 0;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 8px;
             font-weight: bold;
+            font-size: 16px;
             margin-top: 20px;
+            box-sizing: border-box;
+            transition: background 0.3s;
         }
         .btn:hover {
             background-color: #0056b3;
+        }
+        .btn-store {
+            background-color: #28a745;
+            margin-top: 10px;
+        }
+        .btn-store:hover {
+            background-color: #218838;
+        }
+        .note {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #888;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>الانضمام لصف الثاني المتوسط</h2>
-        <p>جاري فتح تطبيق MyU والانتقال إلى الصف...</p>
-        <a id="myuLink" href="https://app.myu.co/class/1370232/QYC54R" class="btn">فتح في تطبيق MyU</a>
+        <p>انقر على الزر أدناه للانضمام إلى الفصل مباشرة عبر تطبيق MyU:</p>
+        
+        <!-- زر فتح التطبيق / الرابط -->
+        <a href="https://app.myu.co/class/1370232/QYC54R" class="btn">فتح في تطبيق MyU</a>
+        
+        <!-- زر الاحتياط للمتجر في حال لم يكن التطبيق مثبتاً -->
+        <a href="https://play.google.com/store/apps/details?id=co.myu.app" class="btn btn-store">تحميل التطبيق (إذا لم يكن مثبتًا)</a>
+
+        <div class="note">
+            إذا واجهتك مشكلة، تأكد من فتح الرابط من خارج متصفح الواتساب (استخدم متصفح سفاري أو كروم).
+        </div>
     </div>
-
-    <script>
-        window.onload = function() {
-            var classUrl = "https://app.myu.co/class/1370232/QYC54R";
-            // روابط المتاجر (يمكنك استبدالها برابط التطبيق الرسمي في المتجر إن وجد)
-            var storeUrl = "https://play.google.com/store/apps/details?id=co.myu.app"; 
-
-            // محاولة فتح الرابط الأصلي
-            window.location.href = classUrl;
-
-            // إذا لم يتم مغادرة الصفحة خلال 2.5 ثانية، فهذا يعني أن التطبيق غير مثبت أو لم يستجب، فيتم توجيهه للمتجر
-            setTimeout(function() {
-                window.location.href = storeUrl;
-            }, 2500);
-        };
-    </script>
 </body>
 </html>
