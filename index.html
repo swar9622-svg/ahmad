@@ -2,84 +2,124 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تحويل رصد الدرجات</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحويل درجات المسابقة</title>
     <!-- استيراد مكتبة SheetJS لقراءة وتعديل ملفات الإكسل -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
-            font-family: Tahoma, sans-serif;
-            background-color: #f4f6f9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f4f8;
             margin: 0;
-            padding: 50px;
-            text-align: center;
-        }
-        .container {
-            background: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            max-width: 600px;
-            margin: auto;
-        }
-        h2 { color: #2c3e50; }
-        input[type="file"] {
-            margin: 20px 0;
-            padding: 10px;
-            border: 2px dashed #3498db;
-            border-radius: 8px;
-            width: 100%;
-            cursor: pointer;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             box-sizing: border-box;
         }
-        button {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            font-size: 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: none;
-            margin-top: 15px;
+        .container {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
         }
-        button:hover { background-color: #219653; }
+        h2 {
+            color: #1e293b;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .upload-label {
+            display: block;
+            background-color: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 25px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #475569;
+            font-weight: 500;
+            font-size: 15px;
+        }
+        .upload-label:active {
+            background-color: #f1f5f9;
+        }
+        input[type="file"] {
+            display: none;
+        }
         #status {
             margin-top: 15px;
+            font-size: 14px;
             font-weight: bold;
-            color: #e67e22;
+            color: #d97706;
+        }
+        button {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            display: none;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            transition: background-color 0.2s;
+        }
+        button:active {
+            background-color: #059669;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>تحويل درجات ملف الإكسل</h2>
-    <p>اختر ملف إكسل الخاص بالمسابقة لمعالجة الورقة الثانية وتصدير الجدول الجديد:</p>
+    <h2>تحويل الدرجات للجوال</h2>
+    <p>اختر ملف إكسل الخاص بالمسابقة لتنفيذ التحويل تلقائياً:</p>
     
+    <label class="upload-label" for="excelFile">
+        📁 اضغط هنا لاختيار ملف الإكسل
+    </label>
     <input type="file" id="excelFile" accept=".xlsx, .xls" />
+    
     <div id="status"></div>
-    <br>
-    <button id="downloadBtn" onclick="downloadExcel()">تحميل الملف الجديد (Excel)</button>
+    
+    <button id="downloadBtn" onclick="downloadExcel()">تحميل الملف الجديد 📥</button>
 </div>
 
 <script>
 let newWorkbookData = null;
 
-// دالة تحويل الدرجة بناءً على المدى الجديد
+// دالة تحويل الدرجة المطلوبة
 function convertGrade(val) {
     let score = parseFloat(val);
     if (isNaN(score)) return "";
-    if (score <= 1) return 1;
-    if (score >= 26) return 8;
     
-    // معادلة خطية أو التوزيع المباشر المتفق عليه
+    // القاعدة المضافة: إذا كانت الدرجة 30 تصبح 10
+    if (score === 30) return 10;
+    
+    if (score <= 1) return 1;
+    if (score >= 26 && score < 30) return 8;
+    
+    // باقي الجدول الخطي
     if (score >= 2 && score <= 5) return 2;
     if (score >= 6 && score <= 9) return 3;
     if (score >= 10 && score <= 13) return 4;
     if (score >= 14 && score <= 17) return 5;
     if (score >= 18 && score <= 21) return 6;
     if (score >= 22 && score <= 25) return 7;
-    return 8;
+    
+    return score; // في حال كانت أرقام أخرى خارج النطاق المتوقع
 }
 
 document.getElementById('excelFile').addEventListener('change', function(e) {
@@ -92,26 +132,24 @@ document.getElementById('excelFile').addEventListener('change', function(e) {
             let data = new Uint8Array(e.target.result);
             let workbook = XLSX.read(data, {type: 'array'});
 
-            // التأكد من وجود ورقتين على الأقل
             if (workbook.SheetNames.length < 2) {
                 alert('الملف يجب أن يحتوي على ورقتين على الأقل!');
                 return;
             }
 
-            // أخذ اسم الورقة الثانية
+            // أخذ الورقة الثانية
             let secondSheetName = workbook.SheetNames[1];
             let worksheet = workbook.Sheets[secondSheetName];
 
-            // تحويل الورقة إلى مصفوفة بيانات
             let jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
 
-            // بناء الجدول الجديد: عمودين (اسم الطالب A، الدرجة الجديدة B)
+            // بناء الجدول الجديد (عامودين: الاسم والدرجة الجديدة)
             let newRows = [["اسم الطالب", "الدرجة الجديدة"]];
 
             for (let i = 0; i < jsonData.length; i++) {
                 let row = jsonData[i];
-                let studentName = row[0]; // العمود A (اسم الطالب)
-                let originalGrade = row[3]; // العمود D (الدرجة قبل المعادلة - الفهرس 3)
+                let studentName = row[0]; // العمود A (الاسم)
+                let originalGrade = row[3]; // العمود D (الدرجة قبل المعادلة)
 
                 if (studentName !== undefined && studentName !== "") {
                     let converted = convertGrade(originalGrade);
@@ -119,19 +157,20 @@ document.getElementById('excelFile').addEventListener('change', function(e) {
                 }
             }
 
-            // إنتاج ملف إكسل جديد بالورقة المطلوبة فقط
+            // إنشاء ملف الإكسل الجديد
             let newWs = XLSX.utils.aoa_to_sheet(newRows);
             let newWb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(newWb, newWs, "الدرجات المحولة");
 
             newWorkbookData = newWb;
             
-            document.getElementById('status').innerText = "تمت معالجة البيانات بنجاح وجاهزة للتحميل!";
-            document.getElementById('downloadBtn').style.display = 'inline-block';
+            document.getElementById('statusJoualStatus = ': 'تمت المعالجة بنجاح!');
+            document.getElementById('status').innerText = "✅ تمت معالجة البيانات بنجاح!";
+            document.getElementById('downloadBtn').style.display = 'block';
 
         } catch (error) {
             console.error(error);
-            alert('حدث خطأ أثناء قراءة الملف. تأكد من تطابق الأعمدة المطلوبة.');
+            alert('حدث خطأ أثناء قراءة الملف. تأكد من صحة الملف المرفق.');
         }
     };
     reader.readAsArrayBuffer(file);
@@ -139,7 +178,7 @@ document.getElementById('excelFile').addEventListener('change', function(e) {
 
 function downloadExcel() {
     if (newWorkbookData) {
-        XLSX.writeFile(newWorkbookData, "الدرجات_المحولة_الجديدة.xlsx");
+        XLSX.writeFile(newWorkbookData, "الدرجات_المحولة_موبايل.xlsx");
     }
 }
 </script>
